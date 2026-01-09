@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaTimesCircle, FaFlask, FaAtom, FaChalkboardTeacher } from 'react-icons/fa';
 import Navbar from '../components/Layout/Navbar';
+import api from '../apiClient';
 import './SubscriptionPage.css';
 
 const SubscriptionPage = ({ user, isStandalone = false }) => {
@@ -93,21 +94,8 @@ const SubscriptionPage = ({ user, isStandalone = false }) => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:10000/api'}/payment/create-order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ planId })
-      });
-
-      const order = await response.json();
-
-      if (!response.ok) {
-        throw new Error(order.message || 'Failed to create order');
-      }
+      const response = await api.post('/payment/create-order', { planId });
+      const order = response.data;
 
       const options = {
         key: 'rzp_test_S1Fsdwu5K3M4lx',
@@ -117,24 +105,18 @@ const SubscriptionPage = ({ user, isStandalone = false }) => {
         description: `Subscription for ${planId} plan`,
         order_id: order.id,
         handler: async function (response) {
-          const verifyRes = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:10000/api'}/payment/verify-payment`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
+          try {
+            const verifyRes = await api.post('/payment/verify-payment', {
               ...response,
               planId
-            })
-          });
+            });
 
-          const verifyData = await verifyRes.json();
-          if (verifyRes.ok) {
-            alert('Subscription successful!');
-            window.location.href = '/dashboard';
-          } else {
-            alert('Payment verification failed: ' + verifyData.message);
+            if (verifyRes.status === 200) {
+              alert('Subscription successful!');
+              window.location.href = '/dashboard';
+            }
+          } catch (verifyError) {
+            alert('Payment verification failed: ' + (verifyError.response?.data?.message || verifyError.message));
           }
         },
         prefill: {
@@ -154,7 +136,7 @@ const SubscriptionPage = ({ user, isStandalone = false }) => {
 
     } catch (error) {
       console.error('Subscription error:', error);
-      alert('Error: ' + error.message);
+      alert('Error: ' + (error.response?.data?.message || error.message));
     }
   };
 
