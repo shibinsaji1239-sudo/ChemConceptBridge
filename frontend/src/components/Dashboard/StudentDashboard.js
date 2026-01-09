@@ -15,7 +15,7 @@ import PeriodicTable from '../PeriodicTable/PeriodicTable';
 import ChemicalEquations from '../ChemicalEquations/ChemicalEquations';
 import ChemistryCalculator from '../ChemistryCalculator/ChemistryCalculator';
 import ARMultimediaModule from '../ARMultimedia/ARMultimediaModule';
-import SubscriptionPage from '../../pages/SubscriptionPage';
+import SubscriptionModule from './SubscriptionModule';
 import KnowledgeGraphVisualizer from '../KnowledgeGraph/KnowledgeGraphVisualizer';
 
 const StudentDashboard = ({ activeTab, setActiveTab }) => {
@@ -321,7 +321,7 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
       case 'performance-dashboard':
         return <PerformanceDashboard />;
       case 'subscription':
-        return <SubscriptionPage user={{ role: 'student' }} />;
+        return <SubscriptionModule />;
       default:
         return renderOverview();
     }
