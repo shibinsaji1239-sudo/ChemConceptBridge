@@ -33,7 +33,7 @@ async function seed() {
         videos: [
           {
             title: 'Titration Demonstration (short)',
-            url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
+            url: 'https://www.youtube.com/watch?v=rK9R-G03Xms',
             description: 'Short demo of titration technique and endpoint observation.',
             type: 'mp4'
           }
@@ -53,7 +53,7 @@ async function seed() {
         videos: [
           {
             title: 'Combustion Safety & Demo',
-            url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
+            url: 'https://www.youtube.com/watch?v=FOfp_KjW0n4',
             description: 'Short clip showing a controlled combustion demonstration.',
             type: 'mp4'
           }
