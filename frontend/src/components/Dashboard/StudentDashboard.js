@@ -15,8 +15,10 @@ import PeriodicTable from '../PeriodicTable/PeriodicTable';
 import ChemicalEquations from '../ChemicalEquations/ChemicalEquations';
 import ChemistryCalculator from '../ChemistryCalculator/ChemistryCalculator';
 import ARMultimediaModule from '../ARMultimedia/ARMultimediaModule';
+import RevisionModule from '../Revision/RevisionModule';
 import SubscriptionModule from './SubscriptionModule';
 import KnowledgeGraphVisualizer from '../KnowledgeGraph/KnowledgeGraphVisualizer';
+import ConceptDependencyRiskAnalyzer from '../ConceptDependency/ConceptDependencyRiskAnalyzer';
 
 const StudentDashboard = ({ activeTab, setActiveTab }) => {
   const [studentStats, setStudentStats] = useState({
@@ -25,18 +27,22 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
     conceptsLearned: 0,
     currentStreak: 0,
     xpPoints: 0,
-    level: 1
+    level: 1,
+    dueRevisions: 0
   });
 
   const [recentActivity, setRecentActivity] = useState([]);
   const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('student');
   const [selectedLearningTopic, setSelectedLearningTopic] = useState(null);
   const [nextTopics, setNextTopics] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedName = localStorage.getItem('userName');
+    const storedRole = localStorage.getItem('userRole');
     setUserName(storedName || 'Student');
+    setUserRole(storedRole || 'student');
 
     // Listen for navigation events from child components
     const handleNavigate = (event) => {
@@ -54,10 +60,11 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const [statsRes, recentRes, pathRes] = await Promise.all([
+        const [statsRes, recentRes, pathRes, revisionRes] = await Promise.all([
           api.get('/user/stats').catch(() => ({ data: {} })),
           api.get('/quiz/attempts/student').catch(() => ({ data: [] })),
-          api.get('/learning-path').catch(() => ({ data: {} }))
+          api.get('/learning-path').catch(() => ({ data: {} })),
+          api.get('/revision/schedule').catch(() => ({ data: { due: [] } }))
         ]);
 
         const stats = statsRes.data;
@@ -67,7 +74,8 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
           conceptsLearned: stats.conceptsLearned ?? 0,
           currentStreak: stats.currentStreak ?? 0,
           xpPoints: stats.xpPoints ?? 0,
-          level: stats.level ?? 1
+          level: stats.level ?? 1,
+          dueRevisions: revisionRes.data?.due?.length || 0
         });
 
         const attempts = recentRes.data || [];
@@ -185,6 +193,14 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
             <div className="feature-title">Take Quiz</div>
             <div className="feature-sub">Test your understanding</div>
           </button>
+          <button className="feature-card" onClick={() => setActiveTab('revision')}>
+            <div className="feature-icon pink">⏰</div>
+            {studentStats.dueRevisions > 0 && (
+              <span className="feature-badge alert">{studentStats.dueRevisions}</span>
+            )}
+            <div className="feature-title">AI Revision</div>
+            <div className="feature-sub">Spaced repetition scheduler</div>
+          </button>
           <button className="feature-card" onClick={() => setActiveTab('learning-path')}>
             <div className="feature-icon red">🛣️</div>
             <div className="feature-title">Learning Path</div>
@@ -287,15 +303,20 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
         return <ConceptPages initialTopic={selectedLearningTopic} />;
       case 'quizzes':
         return <QuizEngine />;
+      case 'revision':
+        return <RevisionModule />;
       case 'concept-map':
         return <ConceptMap role="student" />;
       case 'knowledge-graph':
         return <KnowledgeGraphVisualizer />;
+      case 'dependency-risk':
+        return <ConceptDependencyRiskAnalyzer mode="student" />;
       case 'progress':
         return <ProgressTracker />;
       case 'learning-path':
         return (
           <LearningPath
+            role={userRole}
             onStartTopic={(topic) => {
               setSelectedLearningTopic(topic);
               setActiveTab('concepts');

@@ -2,30 +2,48 @@ import React, { useState, useEffect } from 'react';
 import api from '../../apiClient';
 import './RemediationModule.css';
 
-const RemediationModule = () => {
+const RemediationModule = ({ attemptId, score: propScore }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [attemptsList, setAttemptsList] = useState([]);
   const [selectedAttempt, setSelectedAttempt] = useState(null);
   const [attemptDetails, setAttemptDetails] = useState(null);
+  const [misconceptionReport, setMisconceptionReport] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
   const [weakAreas, setWeakAreas] = useState([]);
   const [expandedQuestion, setExpandedQuestion] = useState(null);
   const [aiRecommendations, setAiRecommendations] = useState([]);
   const [detectedCount, setDetectedCount] = useState(0);
 
   useEffect(() => {
-    loadAttempts();
-  }, []);
+    loadInitialData();
+  }, [attemptId]);
 
-  const loadAttempts = async () => {
+  const loadInitialData = async () => {
     try {
       setLoading(true);
       const { data } = await api.get('/quiz/attempts/student');
-      setAttemptsList(Array.isArray(data) ? data : []);
-      if (Array.isArray(data) && data.length > 0) {
-        setSelectedAttempt(data[0]);
-        loadAttemptDetails(data[0]._id);
-        loadAiRecommendations(data[0]._id);
+      const list = Array.isArray(data) ? data : [];
+      setAttemptsList(list);
+
+      let targetAttempt = null;
+      if (attemptId) {
+        targetAttempt = list.find(a => a._id === attemptId);
+        // If not in the list (maybe it was just created), we might need to fetch it specifically or just use a placeholder
+        if (!targetAttempt && propScore !== undefined) {
+           targetAttempt = { _id: attemptId, score: propScore, quizTitle: 'Current Quiz' };
+        }
+      }
+
+      if (!targetAttempt && list.length > 0) {
+        targetAttempt = list[0];
+      }
+
+      if (targetAttempt) {
+        setSelectedAttempt(targetAttempt);
+        loadAttemptDetails(targetAttempt._id);
+        loadMisconceptionReport(targetAttempt._id);
+        loadAiRecommendations(targetAttempt._id);
       }
     } catch (error) {
       console.error('Error loading attempts:', error);
@@ -41,6 +59,19 @@ const RemediationModule = () => {
       setDetectedCount(data.detectedMisconceptions || 0);
     } catch (error) {
       console.error('Error loading AI recommendations:', error);
+    }
+  };
+
+  const loadMisconceptionReport = async (attemptId) => {
+    try {
+      setReportLoading(true);
+      const { data } = await api.get(`/remediation/attempt/${attemptId}/misconceptions`);
+      setMisconceptionReport(data || null);
+    } catch (error) {
+      console.error('Error loading misconception report:', error);
+      setMisconceptionReport({ error: true });
+    } finally {
+      setReportLoading(false);
     }
   };
 
@@ -92,13 +123,6 @@ const RemediationModule = () => {
       { type: 'Simulation', title: 'Energy Forms and Changes', url: 'https://phet.colorado.edu/sims/html/energy-forms-and-changes/latest/energy-forms-and-changes_en.html' },
       { type: 'Interactive', title: 'Exothermic vs Endothermic', url: '#' }
     ]
-  };
-
-  const misconceptionFixes = {
-    'Common Misconception': 'Students often confuse ionic and covalent bonds',
-    'Why It\'s Wrong': 'Ionic bonds involve electron transfer between metals and nonmetals, while covalent bonds involve electron sharing between nonmetals.',
-    'Correct Understanding': 'Use electronegativity differences: > 1.7 = ionic, < 1.7 = covalent',
-    'Example': 'NaCl (ionic) vs H₂O (covalent)'
   };
 
   const renderOverview = () => {
@@ -225,7 +249,7 @@ const RemediationModule = () => {
                   <div className="detail-row">
                     <span className="label">Your Answer:</span>
                     <span className={`answer ${question.isCorrect ? 'correct' : 'incorrect'}`}>
-                      {question.userAnswer}
+                      {question.userAnswer || '—'}
                     </span>
                   </div>
                   
@@ -319,67 +343,66 @@ const RemediationModule = () => {
   };
 
   const renderConceptClarity = () => {
+    const rows = misconceptionReport?.analyses || [];
+    const incorrect = rows.filter((r) => !r.isCorrect);
+
     return (
       <div className="concept-clarity">
-        <h3>🔍 Common Misconceptions & Clarifications</h3>
-        <div className="misconceptions-grid">
-          <div className="misconception-card">
-            <div className="mc-section">
-              <h4>❌ Misconception</h4>
-              <p>{misconceptionFixes['Common Misconception']}</p>
-            </div>
-            <div className="mc-section">
-              <h4>⚠️ Why It's Wrong</h4>
-              <p>{misconceptionFixes['Why It\'s Wrong']}</p>
-            </div>
-            <div className="mc-section correct">
-              <h4>✓ Correct Understanding</h4>
-              <p>{misconceptionFixes['Correct Understanding']}</p>
-            </div>
-            <div className="mc-section example">
-              <h4>💡 Example</h4>
-              <p>{misconceptionFixes['Example']}</p>
-            </div>
-          </div>
+        <h3>🔍 Misconception Detection (from your quiz)</h3>
 
-          <div className="misconception-card">
-            <div className="mc-section">
-              <h4>❌ Misconception</h4>
-              <p>All chemical reactions are exothermic (release energy)</p>
-            </div>
-            <div className="mc-section">
-              <h4>⚠️ Why It's Wrong</h4>
-              <p>Some reactions absorb energy from surroundings, while others release it.</p>
-            </div>
-            <div className="mc-section correct">
-              <h4>✓ Correct Understanding</h4>
-              <p>Exothermic: releases energy; Endothermic: absorbs energy</p>
-            </div>
-            <div className="mc-section example">
-              <h4>💡 Example</h4>
-              <p>Combustion is exothermic; Ice melting is endothermic</p>
-            </div>
-          </div>
+        {!selectedAttempt ? (
+          <div className="empty-state">Select an attempt to see misconceptions.</div>
+        ) : reportLoading ? (
+          <div className="empty-state">Loading misconception report…</div>
+        ) : misconceptionReport?.error ? (
+          <div className="empty-state">Failed to load misconception report. Please try again later.</div>
+        ) : !misconceptionReport || incorrect.length === 0 ? (
+          <div className="empty-state">No specific misconceptions detected — great job!</div>
+        ) : (
+          <div className="misconceptions-grid">
+            {incorrect.map((q, idx) => (
+              <div className="misconception-card" key={q.questionId || idx}>
+                <div className="mc-section">
+                  <h4>🧪 Question</h4>
+                  <p>{q.question}</p>
+                </div>
 
-          <div className="misconception-card">
-            <div className="mc-section">
-              <h4>❌ Misconception</h4>
-              <p>Atomic number and mass number are the same thing</p>
-            </div>
-            <div className="mc-section">
-              <h4>⚠️ Why It's Wrong</h4>
-              <p>They measure different properties of atoms</p>
-            </div>
-            <div className="mc-section correct">
-              <h4>✓ Correct Understanding</h4>
-              <p>Atomic number = protons; Mass number = protons + neutrons</p>
-            </div>
-            <div className="mc-section example">
-              <h4>💡 Example</h4>
-              <p>Carbon-12: atomic number 6, mass number 12</p>
-            </div>
+                <div className="mc-section">
+                  <h4>✗ Your Answer</h4>
+                  <p><strong>{q.userAnswer || '—'}</strong></p>
+                </div>
+
+                <div className="mc-section correct">
+                  <h4>✓ Correct Answer</h4>
+                  <p><strong>{q.correctText || '—'}</strong></p>
+                </div>
+
+                {q.explanation && (
+                  <div className="mc-section">
+                    <h4>📌 Detailed Explanation (from quiz)</h4>
+                    <p>{q.explanation}</p>
+                  </div>
+                )}
+
+                <div className="mc-section">
+                  <h4>🤖 Detected Misconceptions</h4>
+                  {Array.isArray(q.misconceptions) && q.misconceptions.length > 0 ? (
+                    q.misconceptions.slice(0, 2).map((m, midx) => (
+                      <div key={midx} style={{ marginBottom: 10 }}>
+                        <p><strong>{m.misconception}</strong> <span style={{ color: '#6b7280' }}>({m.severity})</span></p>
+                        <p><strong>Why it’s wrong:</strong> {m.whyWrong}</p>
+                        <p><strong>Correct understanding:</strong> {m.correctUnderstanding}</p>
+                        {m.example ? <p><strong>Example:</strong> {m.example}</p> : null}
+                      </div>
+                    ))
+                  ) : (
+                    <p>No specific pattern-based misconception detected for this answer. Use the quiz explanation above.</p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     );
   };
@@ -456,6 +479,10 @@ const RemediationModule = () => {
                     onClick={() => {
                       setSelectedAttempt(attempt);
                       loadAttemptDetails(attempt._id);
+                      loadMisconceptionReport(attempt._id);
+                      loadAiRecommendations(attempt._id);
+                      setExpandedQuestion(null);
+                      setActiveTab('overview');
                     }}
                   >
                     <span className="attempt-title">{attempt.quizTitle || 'Quiz'}</span>

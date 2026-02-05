@@ -28,6 +28,7 @@ import PerformanceDashboard from './components/Progress/PerformanceDashboard';
 import ConceptPages from './components/Concepts/ConceptPages';
 import ConceptMap from './components/ConceptMap/ConceptMap';
 import QuizEngine from './components/Quiz/QuizEngine';
+import Chatbot from './components/Chatbot/Chatbot'; // ✅ Import Chatbot
 
 // Protected route component
 const ProtectedRoute = ({ element, allowedRole }) => {
@@ -164,6 +165,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+      <Chatbot /> {/* ✅ Chatbot Component */}
     </Router>
   );
 }

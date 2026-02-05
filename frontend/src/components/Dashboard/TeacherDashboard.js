@@ -5,6 +5,10 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ContentManagement from './ContentManagement';
 import SubscriptionPage from '../../pages/SubscriptionPage';
+import VideoManager from '../Videos/VideoManager';
+import ConceptDependencyRiskAnalyzer from '../ConceptDependency/ConceptDependencyRiskAnalyzer';
+import TeacherPerformanceDashboard from './TeacherPerformanceDashboard';
+import LearningPath from '../Progress/LearningPath';
 
 // Simple list and create UI for quizzes and concepts + Students tab aggregated from quiz stats
 const TeacherDashboard = ({ activeTab, setActiveTab, user }) => {
@@ -81,6 +85,17 @@ const TeacherDashboard = ({ activeTab, setActiveTab, user }) => {
     try {
       setLoading(true);
       setError('');
+
+      // Base roster from user management: only assigned students for a teacher
+      const assignedRes = await api.get('/user/students');
+      const assigned = assignedRes.data || [];
+      const map = new Map();
+      assigned.forEach(s => {
+        const sid = String(s._id || s.id);
+        if (!sid) return;
+        map.set(sid, { id: sid, name: s.name, email: s.email, attempts: 0, totalScore: 0 });
+      });
+
       // Ensure quizzes list is loaded
       if (!quizzes.length) {
         const { data } = await api.get('/quiz');
@@ -89,37 +104,24 @@ const TeacherDashboard = ({ activeTab, setActiveTab, user }) => {
       const teacherQuizzes = (quizzes.length ? quizzes : (await api.get('/quiz')).data || [])
         .filter(q => (q.createdBy?._id || q.createdBy) === user.id);
 
+      // Collect stats only to enrich assigned students; ignore non-assigned
       const statsResponses = await Promise.all(
-        teacherQuizzes.map(q => api.get(`/quiz/${q._id}/stats`).then(r => ({ quiz: q, stats: r.data })).catch(() => ({ quiz: q, stats: null })))
+        teacherQuizzes.map(q => api.get(`/quiz/${q._id}/stats`).then(r => r.data).catch(() => null))
       );
 
-      // Aggregate unique students from attempts
-      const map = new Map();
-      statsResponses.forEach(({ stats }) => {
+      statsResponses.forEach((stats) => {
         if (!stats) return;
         (stats.studentPerformance || []).forEach(sp => {
-          const sid = sp.student?._id || sp.student;
-          const name = sp.student?.name || '';
-          const email = sp.student?.email || '';
-          if (!sid) return;
-          const prev = map.get(sid) || { id: sid, name, email, attempts: 0, totalScore: 0 };
+          const sid = String(sp.student?._id || sp.student);
+          if (!sid || !map.has(sid)) return;
+          const prev = map.get(sid);
           prev.attempts += 1;
           prev.totalScore += sp.score || 0;
-          if (!prev.name && name) prev.name = name;
-          if (!prev.email && email) prev.email = email;
+          if (!prev.name && sp.student?.name) prev.name = sp.student.name;
+          if (!prev.email && sp.student?.email) prev.email = sp.student.email;
           map.set(sid, prev);
         });
       });
-
-      // Merge in explicitly assigned students (with 0 attempts if none)
-      try {
-        const assigned = await api.get('/user/students');
-        (assigned.data || []).forEach(s => {
-          const sid = s._id || s.id;
-          if (!sid) return;
-          if (!map.has(sid)) map.set(sid, { id: sid, name: s.name, email: s.email, attempts: 0, totalScore: 0 });
-        });
-      } catch {}
 
       const arr = Array.from(map.values()).map(s => ({
         ...s,
@@ -641,6 +643,10 @@ const TeacherDashboard = ({ activeTab, setActiveTab, user }) => {
         return renderConcepts();
       case 'quizzes':
         return renderQuizzes();
+      case 'videos':
+        return <VideoManager role="teacher" />;
+      case 'dependency-risk':
+        return <ConceptDependencyRiskAnalyzer mode="teacher" />;
       case 'students':
         return renderStudents();
       case 'concept-library':
@@ -707,11 +713,13 @@ const TeacherDashboard = ({ activeTab, setActiveTab, user }) => {
           </div>
         );
       case 'performance-dashboard':
+        return <TeacherPerformanceDashboard user={user} />;
+      case 'learning-path':
         return (
           <div className="dashboard-card">
-            <h3>Performance Dashboard</h3>
+            <h3>Student Learning Paths</h3>
             <div style={{ paddingTop: 8 }}>
-              {React.createElement(require('../Progress/PerformanceDashboard').default)}
+              <LearningPath role="teacher" />
             </div>
           </div>
         );

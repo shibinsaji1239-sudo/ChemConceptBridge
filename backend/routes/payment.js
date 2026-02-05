@@ -15,7 +15,6 @@ const razorpay = new Razorpay({
 const PLAN_PRICES = {
   pro: 83000, // ₹830
   teacher: 250000, // ₹2500
-  ar_multimedia: 50000, // ₹500
 };
 
 // Create an order

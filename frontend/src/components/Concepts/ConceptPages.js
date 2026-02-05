@@ -610,9 +610,21 @@ const ConceptPages = ({ initialTopic }) => {
                   <button 
                     className="secondary-action" 
                     type="button"
-                    onClick={() => {
-                      // TODO: Implement PDF download
-                      alert('PDF download feature coming soon!');
+                    onClick={async () => {
+                      if (!activeConcept?._id) return;
+                      try {
+                        const response = await api.get(`/reports/concept/${activeConcept._id}`, { responseType: 'blob' });
+                        const url = window.URL.createObjectURL(new Blob([response.data]));
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', `${activeConcept.title.replace(/\s+/g, '_')}_Study_Notes.pdf`);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.parentNode.removeChild(link);
+                      } catch (err) {
+                        console.error('Download failed', err);
+                        alert('Failed to download PDF notes');
+                      }
                     }}
                   >
                     Download PDF

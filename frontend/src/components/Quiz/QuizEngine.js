@@ -17,6 +17,23 @@ const QuizEngine = () => {
   const [lastAttemptId, setLastAttemptId] = useState(null);
   const [userPerformance, setUserPerformance] = useState(null);
 
+  // 🧠 Cognitive Load Tracking
+  const [cognitiveSessionId, setCognitiveSessionId] = useState(null);
+  const [questionStartTime, setQuestionStartTime] = useState(0);
+  const [questionClicks, setQuestionClicks] = useState(0);
+  const [questionRetries, setQuestionRetries] = useState(0);
+
+  // Track global clicks for cognitive analysis
+  useEffect(() => {
+    const handleClick = () => {
+      if (quizStarted && !quizCompleted) {
+        setQuestionClicks(prev => prev + 1);
+      }
+    };
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, [quizStarted, quizCompleted]);
+
   useEffect(() => {
     (async () => {
       try {
@@ -58,8 +75,8 @@ const QuizEngine = () => {
         topic: data.topic,
         questions: (data.questions || []).map(q => ({
           id: q._id,
-          question: q.question,
-          options: q.options,
+          question: q.question || "No question text provided",
+          options: q.options || [],
         }))
       };
       setSelectedQuiz(full);
@@ -70,6 +87,12 @@ const QuizEngine = () => {
       setQuizCompleted(false);
       setShowResults(false);
       setLastAttemptId(null);
+      
+      // Init Cognitive Session
+      setCognitiveSessionId(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+      setQuestionStartTime(Date.now());
+      setQuestionClicks(0);
+      setQuestionRetries(0);
     } catch (e) {
       // noop
     }
@@ -80,14 +103,41 @@ const QuizEngine = () => {
   };
 
   const handleAnswerSelect = (questionId, answerIndex) => {
+    // If changing answer, increment retry count
+    if (answers[questionId] !== undefined && answers[questionId] !== answerIndex) {
+      setQuestionRetries(prev => prev + 1);
+    }
     setAnswers(prev => ({
       ...prev,
       [questionId]: answerIndex
     }));
   };
 
-  const nextQuestion = () => {
-    if (currentQuestion < selectedQuiz.questions.length - 1) {
+  const nextQuestion = async () => {
+    // Log cognitive data for current question
+    try {
+      if (selectedQuiz && selectedQuiz.questions[currentQuestion]) {
+        const timeSpent = Date.now() - questionStartTime;
+        await api.post('/cognitive/log', {
+           sessionId: cognitiveSessionId,
+           activityType: 'quiz',
+           resourceId: selectedQuiz.id,
+           questionId: selectedQuiz.questions[currentQuestion].id,
+           timeSpent,
+           retryCount: questionRetries,
+           clickCount: questionClicks
+        });
+      }
+    } catch (e) {
+      console.error("Cognitive log failed", e);
+    }
+
+    // Reset for next
+    setQuestionStartTime(Date.now());
+    setQuestionClicks(0);
+    setQuestionRetries(0);
+
+    if (selectedQuiz && selectedQuiz.questions && currentQuestion < selectedQuiz.questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
       finishQuiz();
@@ -101,6 +151,7 @@ const QuizEngine = () => {
   };
 
   const finishQuiz = async () => {
+    if (!selectedQuiz) return;
     setQuizCompleted(true);
     // Submit attempt to server
     try {
@@ -168,7 +219,7 @@ const QuizEngine = () => {
               <span className="score-value">{score}%</span>
             </div>
             <h3>{score >= 80 ? 'Great job!' : score >= 50 ? 'Good effort' : 'Keep trying'}</h3>
-            <p>You answered {Object.keys(answers).length} out of {selectedQuiz.questions.length} questions</p>
+            <p>You answered {Object.keys(answers).length} out of {(selectedQuiz?.questions?.length || 0)} questions</p>
           </div>
           
           <div className="results-note">Detailed answer review is hidden to prevent sharing of answer keys. Focus on the recommended next steps below.</div>
@@ -193,7 +244,32 @@ const QuizEngine = () => {
   }
 
   if (quizStarted && selectedQuiz) {
+    if (!selectedQuiz.questions || selectedQuiz.questions.length === 0) {
+      return (
+        <div className="quiz-container">
+          <div className="quiz-card">
+            <h2>Error</h2>
+            <p>This quiz has no questions available.</p>
+            <button className="btn btn-primary" onClick={resetQuiz}>Back to Quizzes</button>
+          </div>
+        </div>
+      );
+    }
+
     const question = selectedQuiz.questions[currentQuestion];
+    
+    if (!question) {
+      return (
+        <div className="quiz-container">
+          <div className="quiz-card">
+            <h2>Error</h2>
+            <p>Question not found.</p>
+            <button className="btn btn-primary" onClick={resetQuiz}>Back to Quizzes</button>
+          </div>
+        </div>
+      );
+    }
+
     const progress = ((currentQuestion + 1) / selectedQuiz.questions.length) * 100;
 
     return (

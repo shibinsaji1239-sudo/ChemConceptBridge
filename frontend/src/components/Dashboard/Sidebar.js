@@ -16,6 +16,7 @@ const Sidebar = ({ user, activeTab, setActiveTab, onLogout }) => {
       return [
         ...baseItems,
         { id: 'videos', label: 'Videos', icon: '🎬' },
+        { id: 'dependency-risk', label: 'Risk Analyzer', icon: '🧠' },
         { id: 'ar-multimedia', label: 'AR & Multimedia', icon: '🎨' },
         { id: 'learning-path', label: 'Learning Path', icon: '📚' },
         { id: 'concept-map', label: 'Concept Map', icon: '🗺️' },
@@ -31,6 +32,8 @@ const Sidebar = ({ user, activeTab, setActiveTab, onLogout }) => {
       return [
         ...baseItems,
         { id: 'videos', label: 'Videos', icon: '🎬' },
+        { id: 'dependency-risk', label: 'Risk Analyzer', icon: '🧠' },
+        { id: 'learning-path', label: 'Learning Path', icon: '📚' },
         { id: 'students', label: 'Students', icon: '👥' },
         { id: 'analytics', label: 'Analytics', icon: '📊' },
         { id: 'content', label: 'Content Management', icon: '📚' },
@@ -47,6 +50,8 @@ const Sidebar = ({ user, activeTab, setActiveTab, onLogout }) => {
       return [
         ...baseItems,
         { id: 'videos', label: 'Videos', icon: '🎬' },
+        { id: 'dependency-risk', label: 'Risk Analyzer', icon: '🧠' },
+        { id: 'learning-path', label: 'Learning Path', icon: '📚' },
         { id: 'users', label: 'User Management', icon: '👥' },
         { id: 'analytics', label: 'Analytics', icon: '📊' },
         { id: 'misconceptions', label: 'Misconception Analytics', icon: '🧠' },
@@ -90,7 +95,12 @@ const Sidebar = ({ user, activeTab, setActiveTab, onLogout }) => {
               className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
               onClick={() => {
                 if (item.id === 'videos') {
-                  navigate('/videos');
+                  if (user.role === 'student') {
+                    navigate('/videos');
+                    return;
+                  }
+                  setActiveTab(item.id);
+                  return;
                 } else {
                   setActiveTab(item.id);
                 }

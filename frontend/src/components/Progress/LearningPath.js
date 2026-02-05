@@ -2,19 +2,51 @@ import React, { useState, useEffect } from 'react';
 import './LearningPath.css';
 import api from '../../apiClient';
 
-const LearningPath = ({ onStartTopic }) => {
+const LearningPath = ({ onStartTopic, userId = null, role = 'student' }) => {
   const [roadmap, setRoadmap] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedTopic, setExpandedTopic] = useState(null);
   const [completedTopics, setCompletedTopics] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [selectedStudentId, setSelectedStudentId] = useState(userId || null);
+  const [loadingStudents, setLoadingStudents] = useState(false);
 
+  // Fetch students list for teachers
+  useEffect(() => {
+    if (role === 'teacher' || role === 'admin') {
+      (async () => {
+        try {
+          setLoadingStudents(true);
+          const { data } = await api.get('/user/students');
+          setStudents(data || []);
+          // Auto-select first student if not already selected
+          if (!selectedStudentId && data && data.length > 0) {
+            setSelectedStudentId(data[0]._id);
+          }
+        } catch (err) {
+          console.error('Failed to load students:', err);
+        } finally {
+          setLoadingStudents(false);
+        }
+      })();
+    }
+  }, [role, selectedStudentId]);
+
+  // Fetch learning path data
   useEffect(() => {
     (async () => {
       try {
         setLoading(true);
         setError('');
-        const { data } = await api.get('/learning-path');
+        let url = '/learning-path';
+        
+        // If teacher viewing student's path
+        if ((role === 'teacher' || role === 'admin') && selectedStudentId) {
+          url = `/learning-path/${selectedStudentId}`;
+        }
+        
+        const { data } = await api.get(url);
         setRoadmap(data);
       } catch (err) {
         setError(err?.response?.data?.error || err.message || 'Failed to load learning path');
@@ -22,7 +54,7 @@ const LearningPath = ({ onStartTopic }) => {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [selectedStudentId, role]);
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -98,12 +130,34 @@ const LearningPath = ({ onStartTopic }) => {
 
   return (
     <div className="learning-path">
-      {/* Header */}
+      {/* Header with Student Selection for Teachers */}
       <div className="lp-header">
         <div className="lp-header-content">
-          <h1>📚 Your Personalized Learning Path</h1>
+          <h1>📚 {role === 'teacher' || role === 'admin' ? 'Student ' : ''}Learning Path</h1>
           <p>{roadmap?.message}</p>
         </div>
+        
+        {/* Student Selection for Teachers/Admins */}
+        {(role === 'teacher' || role === 'admin') && students.length > 0 && (
+          <div className="student-selector">
+            <label htmlFor="student-select">
+              <span className="selector-label">👤 Select Student:</span>
+              <select
+                id="student-select"
+                value={selectedStudentId || ''}
+                onChange={(e) => setSelectedStudentId(e.target.value)}
+                className="student-dropdown"
+              >
+                <option value="">Choose a student...</option>
+                {students.map(student => (
+                  <option key={student._id} value={student._id}>
+                    {student.name} ({student.email})
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
       </div>
 
       {/* Statistics Dashboard */}
@@ -234,17 +288,19 @@ const LearningPath = ({ onStartTopic }) => {
                       {/* Expandable Details */}
                       <div className={`topic-details ${expandedTopic === globalIdx ? 'expanded' : ''}`}>
                         <p className="topic-reason">{topic.reason}</p>
-                        <button
-                          className="action-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (typeof onStartTopic === 'function') {
-                              onStartTopic(topic.topic || topic.title);
-                            }
-                          }}
-                        >
-                          {topic.recommendedAction === 'Focus here first' ? '🎯 Start Here' : '📖 Continue'}
-                        </button>
+                        {(role === 'student') && (
+                          <button
+                            className="action-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (typeof onStartTopic === 'function') {
+                                onStartTopic(topic.topic || topic.title);
+                              }
+                            }}
+                          >
+                            {topic.recommendedAction === 'Focus here first' ? '🎯 Start Here' : '📖 Continue'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   );

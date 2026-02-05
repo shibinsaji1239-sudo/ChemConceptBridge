@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     // Link a student to their teacher (optional)
     assignedTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     subscription: {
-        plan: { type: String, enum: ["free", "pro", "teacher", "ar_multimedia"], default: "free" },
+        plan: { type: String, enum: ["free", "pro", "teacher"], default: "free" },
         status: { type: String, enum: ["active", "inactive", "expired"], default: "inactive" },
         startDate: Date,
         endDate: Date,

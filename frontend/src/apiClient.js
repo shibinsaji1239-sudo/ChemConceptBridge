@@ -3,7 +3,7 @@
 
 import axios from 'axios';
 
-// Backend is running on port 10000
+// Backend port is controlled by `PORT` in `backend/.env` (in this project it runs on 10000).
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:10000/api',
 });

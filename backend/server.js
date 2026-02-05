@@ -14,6 +14,12 @@ const app = express();
 // ====================
 app.use(express.json());
 
+// Log all requests
+app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.url}`);
+    next();
+});
+
 // ✅ CORS — dynamic origin with credentials; explicit echo for local dev
 app.use(
   cors({
@@ -46,11 +52,19 @@ const mlRoutes = require("./routes/mlRoutes"); // ✅ ML route added
 const learningPathRoutes = require("./routes/learningPath");
 const experimentRoutes = require("./routes/experiments");
 const paymentRoutes = require("./routes/payment");
+const videoRoutes = require("./routes/videos");
+const reportRoutes = require("./routes/reports");
+const revisionRoutes = require("./routes/revision");
+const chatRoutes = require("./routes/chat"); // ✅ Chat route added
+const cognitiveRoutes = require("./routes/cognitive"); // ✅ Cognitive Load Analyzer
+const conceptDependencyRoutes = require("./routes/conceptDependency"); // ✅ Concept Dependency Risk Analyzer
 
 // ====================
 // 🚏 API Route Mounting
 // ====================
 app.use("/api/ml", mlRoutes); // ✅ ML Models (KNN, SVM, etc.)
+app.use("/api/cognitive", cognitiveRoutes); // ✅ Cognitive Metrics
+app.use("/api/concept-dependency", conceptDependencyRoutes); // ✅ Concept Dependency Risk Analyzer
 app.use("/api/auth", authRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/concept", conceptRoutes);
@@ -64,6 +78,11 @@ app.use("/api/chemical-equations", chemicalEquationRoutes);
 app.use("/api/learning-path", learningPathRoutes);
 app.use("/api/experiments", experimentRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/videos", videoRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/revision", revisionRoutes);
+app.get("/api/test-reports", (req, res) => res.json({ message: "Reports route is reachable" }));
+app.use("/api/chat", chatRoutes); // ✅ Chat route mounted
 
 // ====================
 // 🧠 Health Check Route

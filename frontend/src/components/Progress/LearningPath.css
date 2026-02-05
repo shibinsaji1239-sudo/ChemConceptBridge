@@ -13,6 +13,10 @@
   border-radius: 16px;
   margin-bottom: 32px;
   box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
 }
 
 .lp-header-content h1 {
@@ -27,6 +31,67 @@
   margin: 0;
   opacity: 0.95;
   line-height: 1.5;
+}
+
+/* Student Selector */
+.student-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 12px 16px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 250px;
+}
+
+.student-selector label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+}
+
+.selector-label {
+  font-size: 0.95em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.student-dropdown {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  font-size: 0.9em;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.student-dropdown:hover {
+  background: white;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.student-dropdown:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+@media (max-width: 768px) {
+  .lp-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .student-selector {
+    min-width: unset;
+  }
 }
 
 /* Statistics Dashboard */

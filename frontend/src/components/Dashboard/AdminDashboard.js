@@ -7,6 +7,9 @@ import AdminAnalytics from './AdminAnalytics';
 import MisconceptionAnalytics from './MisconceptionAnalytics';
 import AdminSystemSettings from './AdminSystemSettings';
 import SubscriptionPage from '../../pages/SubscriptionPage';
+import VideoManager from '../Videos/VideoManager';
+import ConceptDependencyRiskAnalyzer from '../ConceptDependency/ConceptDependencyRiskAnalyzer';
+import LearningPath from '../Progress/LearningPath';
 import api from '../../apiClient';
 import { toast } from 'react-toastify';
 import {
@@ -98,6 +101,26 @@ const AdminDashboard = ({ activeTab, setActiveTab }) => {
       setReportsLoading(false);
     }
   }, []);
+
+  const handleDownloadInstitutionReport = async () => {
+    try {
+      setReportsLoading(true);
+      const response = await api.get('/reports/institution', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'Institution_Outcome_Report.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      toast.success('Institution report downloaded successfully');
+    } catch (err) {
+      console.error('Institution report download failed', err);
+      toast.error('Failed to download institution report');
+    } finally {
+      setReportsLoading(false);
+    }
+  };
 
   const revenue = 48392;
 
@@ -418,6 +441,10 @@ const AdminDashboard = ({ activeTab, setActiveTab }) => {
         return <AdminConcepts />;
       case 'quizzes':
         return <AdminQuizzes />;
+      case 'videos':
+        return <VideoManager role="admin" />;
+      case 'dependency-risk':
+        return <ConceptDependencyRiskAnalyzer mode="admin" />;
       case 'analytics':
         return <AdminAnalytics />;
       case 'misconceptions':
@@ -442,6 +469,15 @@ const AdminDashboard = ({ activeTab, setActiveTab }) => {
             </div>
           </div>
         );
+      case 'learning-path':
+        return (
+          <div className="dashboard-card">
+            <h3>Student Learning Paths</h3>
+            <div style={{ paddingTop: 8 }}>
+              <LearningPath role="admin" />
+            </div>
+          </div>
+        );
       case 'system':
         return (
           <div className="tab-content">
@@ -458,9 +494,14 @@ const AdminDashboard = ({ activeTab, setActiveTab }) => {
                 <h2>Reports</h2>
                 <p>Comprehensive performance insights across users, content, and engagement.</p>
               </div>
-              <button className="refresh-btn" onClick={loadReports} disabled={reportsLoading}>
-                {reportsLoading ? 'Loading…' : 'Refresh Reports'}
-              </button>
+              <div className="reports-actions" style={{ display: 'flex', gap: '10px' }}>
+                <button className="download-institution-report-btn" onClick={handleDownloadInstitutionReport} disabled={reportsLoading} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}>
+                  {reportsLoading ? '...' : '📊 Download Outcome Report'}
+                </button>
+                <button className="refresh-btn" onClick={loadReports} disabled={reportsLoading}>
+                  {reportsLoading ? 'Loading…' : 'Refresh Reports'}
+                </button>
+              </div>
             </div>
 
             {reportsError && <div className="error-message">{reportsError}</div>}

@@ -1,12 +1,13 @@
+const path = require('path');
 const User = require('./models/User');
 
 // Test 1: Verify User model subscription enum includes ar_multimedia
 console.log('=== Testing User Model Subscription Enum ===');
 try {
-  const enumValues = User.schema.paths.subscription.schema.paths.plan.enumValues;
+  const enumValues = User.schema.path('subscription.plan').enumValues;
   console.log('Subscription enum values:', enumValues);
 
-  const expectedPlans = ['free', 'pro', 'teacher', 'ar_multimedia'];
+  const expectedPlans = ['free', 'pro', 'teacher'];
   const hasAllPlans = expectedPlans.every(plan => enumValues.includes(plan));
 
   if (hasAllPlans) {
@@ -24,12 +25,12 @@ try {
   const paymentRoutes = require('./routes/payment');
   // We can't directly access PLAN_PRICES from the module, so we'll check the file content
   const fs = require('fs');
-  const paymentFile = fs.readFileSync('./routes/payment.js', 'utf8');
+  const paymentFile = fs.readFileSync(path.join(__dirname, 'routes', 'payment.js'), 'utf8');
 
-  if (paymentFile.includes('ar_multimedia: 50000')) {
-    console.log('✅ PASS: ar_multimedia plan pricing is set to ₹500 (50000 paise)');
+  if (!paymentFile.includes('ar_multimedia:')) {
+    console.log('✅ PASS: ar_multimedia plan pricing has been removed');
   } else {
-    console.log('❌ FAIL: ar_multimedia plan pricing not found or incorrect');
+    console.log('❌ FAIL: ar_multimedia plan pricing still exists');
   }
 
   if (paymentFile.includes('PLAN_PRICES')) {
@@ -45,20 +46,19 @@ try {
 console.log('\n=== Testing Frontend Subscription Page ===');
 try {
   const fs = require('fs');
-  const path = require('path');
   const subscriptionPagePath = path.join(__dirname, '..', 'frontend', 'src', 'pages', 'SubscriptionPage.js');
   const subscriptionPage = fs.readFileSync(subscriptionPagePath, 'utf8');
 
-  if (subscriptionPage.includes('ar_multimedia')) {
-    console.log('✅ PASS: ar_multimedia plan is included in SubscriptionPage');
+  if (!subscriptionPage.includes('ar_multimedia')) {
+    console.log('✅ PASS: ar_multimedia plan is NOT included in SubscriptionPage (restricted to pro/teacher)');
   } else {
-    console.log('❌ FAIL: ar_multimedia plan not found in SubscriptionPage');
+    console.log('❌ FAIL: ar_multimedia plan still found in SubscriptionPage');
   }
 
-  if (subscriptionPage.includes('₹500')) {
-    console.log('✅ PASS: ₹500 pricing is displayed for ar_multimedia plan');
+  if (subscriptionPage.includes('AR Multimedia access')) {
+    console.log('✅ PASS: AR Multimedia access is mentioned as a feature');
   } else {
-    console.log('❌ FAIL: ₹500 pricing not found for ar_multimedia plan');
+    console.log('❌ FAIL: AR Multimedia access feature not mentioned');
   }
 } catch (error) {
   console.log('❌ ERROR: Failed to test frontend subscription page:', error.message);
@@ -101,3 +101,4 @@ try {
 
 console.log('\n=== Test Summary ===');
 console.log('Thorough testing completed. Check results above for any failures.');
+

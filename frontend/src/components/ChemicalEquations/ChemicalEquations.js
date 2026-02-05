@@ -11,6 +11,23 @@ const ChemicalEquations = () => {
   const [error, setError] = useState('');
   const [showHints, setShowHints] = useState(false);
 
+  // 🧠 Cognitive Load Tracking
+  const [cognitiveSessionId, setCognitiveSessionId] = useState(null);
+  const [startTime, setStartTime] = useState(0);
+  const [clickCount, setClickCount] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Track global clicks
+  useEffect(() => {
+    const handleClick = () => {
+      if (selectedEquation && !result) {
+        setClickCount(prev => prev + 1);
+      }
+    };
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, [selectedEquation, result]);
+
   useEffect(() => {
     fetchEquations();
   }, []);
@@ -66,26 +83,55 @@ const ChemicalEquations = () => {
     setUserAnswer('');
     setResult(null);
     setShowHints(false);
+    
+    // Init Cognitive Session
+    setCognitiveSessionId(`eq_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+    setStartTime(Date.now());
+    setClickCount(0);
+    setRetryCount(0);
   };
 
   const checkAnswer = async () => {
     if (!selectedEquation || !userAnswer.trim()) return;
+    
+    let isCorrect = false;
+    let checkResult = null;
+
     try {
       setLoading(true);
       if (selectedEquation._id) {
         const { data } = await api.post(`/chemical-equations/${selectedEquation._id}/check-balance`, {
           userEquation: userAnswer
         });
+        checkResult = data;
+        isCorrect = data.isCorrect;
         setResult(data);
       } else {
-        const isCorrect = userAnswer.trim().toLowerCase() === selectedEquation.balancedEquationString.trim().toLowerCase();
-        setResult({
+        isCorrect = userAnswer.trim().toLowerCase() === selectedEquation.balancedEquationString.trim().toLowerCase();
+        checkResult = {
           isCorrect,
           correctAnswer: selectedEquation.balancedEquationString,
           explanation: selectedEquation.explanation,
           hints: selectedEquation.hints || []
-        });
+        };
+        setResult(checkResult);
       }
+
+      // 🧠 Log Cognitive Data
+      const timeSpent = Date.now() - startTime;
+      await api.post('/cognitive/log', {
+        sessionId: cognitiveSessionId,
+        activityType: 'chemical_equation',
+        resourceId: selectedEquation._id || selectedEquation.equationString, // Use string as ID for mock
+        timeSpent,
+        retryCount,
+        clickCount
+      });
+
+      if (!isCorrect) {
+        setRetryCount(prev => prev + 1);
+      }
+
     } catch (e) {
       setError('Failed to check answer');
     } finally {

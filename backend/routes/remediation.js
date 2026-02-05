@@ -16,6 +16,9 @@ const RULES = [
       /ca\(oh\)2\s*is\s*an\s*acid|calcium\s*hydroxide.*acid/i
     ],
     misconception: 'Confusing strong bases with acids',
+    whyWrong: 'Strong bases like NaOH/KOH produce OH⁻ in water, so calling them acids is incorrect.',
+    correctUnderstanding: 'Acids donate H⁺ (or increase H₃O⁺), bases accept H⁺ / produce OH⁻. Identify ions in water.',
+    example: 'NaOH → Na⁺ + OH⁻ (base); HCl → H⁺ + Cl⁻ (acid).',
     severity: 'high',
     resources: [
       { type: 'video', title: 'Acids vs Bases Basics', url: 'https://www.youtube.com/watch?v=KZ8qf4m5YwI' },
@@ -30,6 +33,9 @@ const RULES = [
       /ph\s*below\s*7.*base|ph\s*above\s*7.*acid/i
     ],
     misconception: 'Misunderstanding pH scale direction',
+    whyWrong: 'pH < 7 indicates acidic solutions (more H₃O⁺), while pH > 7 indicates basic solutions (more OH⁻).',
+    correctUnderstanding: 'Lower pH = more acidic; higher pH = more basic; pH 7 is neutral at 25°C.',
+    example: 'pH 2 (acidic) vs pH 12 (basic).',
     severity: 'medium',
     resources: [
       { type: 'animation', title: 'pH Scale Interactive', url: 'https://phet.colorado.edu/sims/html/ph-scale/latest/ph-scale_en.html' },
@@ -45,6 +51,9 @@ const RULES = [
       /group\s*1.*alkaline\s*earth|alkali\s*metals.*group\s*2/i
     ],
     misconception: 'Confusing metal properties and periodic groups',
+    whyWrong: 'Periodic groups have specific names/properties; mixing groups leads to wrong reactivity and trends.',
+    correctUnderstanding: 'Group 1 = alkali metals, Group 2 = alkaline earth metals; noble gases are largely inert.',
+    example: 'Na is Group 1 (alkali); Mg is Group 2 (alkaline earth).',
     severity: 'medium',
     resources: [
       { type: 'interactive', title: 'Periodic Table Explorer', url: 'https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_en.html' },
@@ -60,6 +69,9 @@ const RULES = [
       /metallic\s*bonding.*covalent/i
     ],
     misconception: 'Confusing different types of chemical bonds',
+    whyWrong: 'Ionic bonding involves electron transfer (usually metal + nonmetal), covalent involves sharing (nonmetals).',
+    correctUnderstanding: 'Use electronegativity/particle types: transfer → ionic; sharing → covalent; metals in lattice → metallic.',
+    example: 'NaCl (ionic) vs H₂O (covalent) vs Cu (metallic).',
     severity: 'high',
     resources: [
       { type: 'animation', title: 'Chemical Bonding Types', url: 'https://phet.colorado.edu/sims/html/molecule-polarity/latest/molecule-polarity_en.html' },
@@ -75,6 +87,9 @@ const RULES = [
       /mole\s*ratio.*mass\s*ratio/i
     ],
     misconception: 'Confusing moles, mass, and ratios in stoichiometry',
+    whyWrong: 'Moles count particles; mass depends on molar mass. Ratios in equations are mole ratios, not mass ratios.',
+    correctUnderstanding: 'Convert mass ↔ moles using molar mass, then apply coefficients as mole ratios.',
+    example: '2H₂ + O₂ → 2H₂O means 2 mol H₂ reacts with 1 mol O₂.',
     severity: 'high',
     resources: [
       { type: 'calculator', title: 'Stoichiometry Calculator', url: '/chemistry-calculator' },
@@ -90,6 +105,9 @@ const RULES = [
       /gibbs\s*free\s*energy.*spontaneous.*positive/i
     ],
     misconception: 'Confusing thermodynamic concepts and energy changes',
+    whyWrong: 'Exothermic releases heat; endothermic absorbs heat. Swapping them reverses sign conventions.',
+    correctUnderstanding: 'Exothermic: ΔH < 0; Endothermic: ΔH > 0. Check energy flow direction.',
+    example: 'Combustion (exothermic) vs melting ice (endothermic).',
     severity: 'medium',
     resources: [
       { type: 'simulation', title: 'Thermodynamics Simulator', url: 'https://phet.colorado.edu/sims/html/energy-forms-and-changes/latest/energy-forms-and-changes_en.html' },
@@ -105,6 +123,9 @@ const RULES = [
       /mass\s*number.*atomic\s*number.*same/i
     ],
     misconception: 'Misunderstanding atomic subatomic particles and their positions',
+    whyWrong: 'Protons/neutrons are in the nucleus; electrons occupy orbitals around it. Charges are fixed per particle type.',
+    correctUnderstanding: 'Proton: +1 (nucleus), neutron: 0 (nucleus), electron: −1 (orbitals).',
+    example: 'Atomic number = protons; mass number = protons + neutrons.',
     severity: 'high',
     resources: [
       { type: 'interactive', title: 'Build an Atom', url: 'https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_en.html' },
@@ -120,6 +141,9 @@ const RULES = [
       /catalyst.*shifts.*equilibrium/i
     ],
     misconception: 'Misunderstanding the dynamic nature of chemical equilibrium',
+    whyWrong: 'At equilibrium, forward and reverse reactions continue; rates are equal, not concentrations necessarily.',
+    correctUnderstanding: 'Dynamic equilibrium: rates equal; the system continues reacting microscopically.',
+    example: 'N₂O₄ ⇌ 2NO₂ continues both ways at equilibrium.',
     severity: 'high',
     resources: [
       { type: 'animation', title: 'Reversible Reactions', url: 'https://phet.colorado.edu/sims/html/reversible-reactions/latest/reversible-reactions_en.html' },
@@ -135,6 +159,9 @@ const RULES = [
       /dissolving.*chemical\s*change/i
     ],
     misconception: 'Confusing physical dissolution with chemical reactions or saturation states',
+    whyWrong: 'Dissolving is usually a physical process; saturation refers to equilibrium of dissolution, not “no more can ever dissolve”.',
+    correctUnderstanding: 'Saturated = at solubility limit (dynamic), supersaturated = unstable, dissolution ≠ chemical change.',
+    example: 'NaCl dissolving in water is physical; burning Mg is chemical.',
     severity: 'medium',
     resources: [
       { type: 'simulation', title: 'Salts and Solubility', url: 'https://phet.colorado.edu/sims/html/salts-and-solubility/latest/salts-and-solubility_en.html' },
@@ -178,6 +205,96 @@ function calculateConfidence(text, pattern) {
   
   return Math.min(confidence, 1.0);
 }
+
+function enrichMisconception(detected) {
+  // Find the first matching rule for richer explanations
+  const rule = RULES.find((r) => r.category === detected.category && r.misconception === detected.misconception);
+  if (!rule) {
+    return {
+      ...detected,
+      whyWrong: 'This answer reflects a common misunderstanding of the underlying chemistry concept.',
+      correctUnderstanding: 'Review the core definition and apply it to distinguish the correct concept.',
+      example: 'Re-check the definition, then test it on a simple example case.'
+    };
+  }
+
+  return {
+    ...detected,
+    whyWrong:
+      rule.whyWrong ||
+      'This misconception mixes up definitions or applies a rule in the wrong context.',
+    correctUnderstanding:
+      rule.correctUnderstanding ||
+      'Use the correct definition/rule and check the conditions where it applies.',
+    example: rule.example || ''
+  };
+}
+
+// Per-question misconception analysis for an attempt:
+// Detects misconceptions from the student's chosen option text + question context,
+// and returns a detailed explanation aligned to that specific question.
+router.get('/attempt/:attemptId/misconceptions', auth, async (req, res) => {
+  try {
+    const { attemptId } = req.params;
+    const attempt = await QuizAttempt.findById(attemptId).populate('quiz');
+    if (!attempt || attempt.student.toString() !== req.user.id) {
+      return res.status(404).json({ message: 'Attempt not found' });
+    }
+
+    const quiz = attempt.quiz;
+    if (!quiz) {
+      return res.status(200).json({
+        quiz: { id: attempt.quiz, title: 'Unknown Quiz', topic: '' },
+        attemptId,
+        totalQuestions: 0,
+        incorrectCount: 0,
+        analyses: []
+      });
+    }
+
+    const analyses = (attempt.answers || []).map((a) => {
+      const q = Array.isArray(quiz.questions)
+        ? quiz.questions.find((qq) => String(qq._id) === String(a.questionId))
+        : null;
+
+      const options = q?.options || [];
+      const selectedIndex = typeof a.selectedOption === 'number' ? a.selectedOption : null;
+      const correctIndex = typeof q?.correct === 'number' ? q.correct : null;
+
+      const userAnswerText =
+        selectedIndex != null && options[selectedIndex] != null ? String(options[selectedIndex]) : '';
+      const correctText =
+        correctIndex != null && options[correctIndex] != null ? String(options[correctIndex]) : '';
+
+      const context = q?.question || quiz.topic || '';
+      const detected = detectMisconceptions(userAnswerText, context).map(enrichMisconception);
+
+      return {
+        questionId: String(a.questionId),
+        topic: quiz.topic || '',
+        question: q?.question || '',
+        options,
+        selectedIndex,
+        userAnswer: userAnswerText,
+        correctIndex,
+        correctText,
+        isCorrect: !!a.isCorrect,
+        explanation: q?.explanation || '',
+        misconceptions: detected,
+      };
+    });
+
+    res.json({
+      quiz: { id: quiz._id, title: quiz.title, topic: quiz.topic },
+      attemptId,
+      totalQuestions: analyses.length,
+      incorrectCount: analyses.filter((x) => !x.isCorrect).length,
+      analyses,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 router.post('/recommend', auth, async (req, res) => {
   try {

@@ -5,6 +5,7 @@ const auth = require("../middleware/authMiddleware");
 const Gamification = require("../models/Gamification");
 const UserProgress = require("../models/UserProgress");
 const { checkBadgeUnlocks, getQuizXp } = require("../utils/badgeDefinitions");
+const { generateQuestions } = require("../utils/questionGenerator");
 
 const router = express.Router();
 
@@ -322,6 +323,53 @@ router.post("/:id/attempt", auth, async (req, res) => {
 
       await gamification.save();
 
+      // NEW: Revision Scheduler Integration
+      try {
+        const Concept = require('../models/Concept');
+        const RevisionSchedule = require('../models/RevisionSchedule');
+        const { calculateSM2 } = require('../utils/spacedRepetition');
+
+        // Find a related concept for this quiz topic
+        const concept = await Concept.findOne({ topic: quiz.topic });
+        if (concept) {
+          // Map quiz score (0-100) to SM2 quality (0-5)
+          const quality = Math.floor(score / 20); // 0-20=0, 21-40=1, 41-60=2, 61-80=3, 81-90=4, 91-100=5
+          
+          let schedule = await RevisionSchedule.findOne({ student: req.user.id, concept: concept._id });
+          
+          if (!schedule) {
+            const sm2Result = calculateSM2(quality, 0, 0, 2.5);
+            const nextDate = new Date();
+            nextDate.setDate(nextDate.getDate() + sm2Result.interval);
+            
+            schedule = new RevisionSchedule({
+              student: req.user.id,
+              concept: concept._id,
+              interval: sm2Result.interval,
+              repetitionCount: sm2Result.repetitions,
+              easeFactor: sm2Result.easeFactor,
+              nextReview: nextDate,
+              history: [{ quality }]
+            });
+          } else {
+            const sm2Result = calculateSM2(quality, schedule.repetitionCount, schedule.interval, schedule.easeFactor);
+            const nextDate = new Date();
+            nextDate.setDate(nextDate.getDate() + sm2Result.interval);
+            
+            schedule.interval = sm2Result.interval;
+            schedule.repetitionCount = sm2Result.repetitions;
+            schedule.easeFactor = sm2Result.easeFactor;
+            schedule.lastReviewed = new Date();
+            schedule.nextReview = nextDate;
+            schedule.history.push({ quality });
+          }
+          await schedule.save();
+          console.log(`[REVISION] Schedule updated for user ${req.user.id} on concept ${concept.title}`);
+        }
+      } catch (revErr) {
+        console.error('Revision trigger error:', revErr);
+      }
+
       res.json({
         score,
         correct,
@@ -387,12 +435,17 @@ router.get("/attempts/:id/review", auth, async (req, res) => {
       const q = quiz.questions.find(q => q._id.toString() === String(a.questionId)) || {};
       const correctIndex = typeof q.correct === 'number' ? q.correct : null;
       const correctText = (Array.isArray(q.options) && correctIndex != null) ? q.options[correctIndex] : '';
+      const selectedIndex = typeof a.selectedOption === 'number' ? a.selectedOption : null;
+      const userAnswerText = (Array.isArray(q.options) && selectedIndex != null) ? q.options[selectedIndex] : '';
       return {
         questionId: a.questionId,
         question: q.question || '',
         options: q.options || [],
+        topic: quiz.topic || '',
         correctIndex,
         correctText,
+        selectedIndex,
+        userAnswer: userAnswerText,
         isCorrect: a.isCorrect,
         explanation: q.explanation || ''
       };
@@ -585,6 +638,76 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
+router.post("/seed-attempts", auth, async (req, res) => {
+  try {
+    const quizzes = await Quiz.find({ isActive: true }).sort({ createdAt: -1 }).limit(3);
+    if (!quizzes || quizzes.length === 0) {
+      return res.status(404).json({ message: "No quizzes available" });
+    }
+    const created = [];
+    for (const quiz of quizzes) {
+      if (!Array.isArray(quiz.questions) || quiz.questions.length === 0) continue;
+      const count = Math.min(5, quiz.questions.length);
+      const indices = Array.from({ length: quiz.questions.length }, (_, i) => i).sort(() => Math.random() - 0.5).slice(0, count);
+      let correct = 0;
+      const detailedAnswers = indices.map((qi, idx) => {
+        const q = quiz.questions[qi];
+        const optionsCount = Array.isArray(q.options) ? q.options.length : 0;
+        let selected = q.correct;
+        if (idx % 2 === 0 && optionsCount > 1) {
+          const pool = Array.from({ length: optionsCount }, (_, i) => i).filter(i => i !== q.correct);
+          selected = pool[Math.floor(Math.random() * pool.length)];
+        }
+        const isCorrect = selected === q.correct;
+        if (isCorrect) correct++;
+        return { questionId: q._id, selectedOption: selected, isCorrect, timeSpent: Math.floor(3 + Math.random() * 7) };
+      });
+      const score = Math.round((correct / detailedAnswers.length) * 100);
+      const misconceptions = [];
+      detailedAnswers.forEach(a => {
+        if (!a.isCorrect) {
+          const q = quiz.questions.find(qq => String(qq._id) === String(a.questionId));
+          if (q && Array.isArray(q.misconceptionTraps)) {
+            const t = q.misconceptionTraps[a.selectedOption];
+            if (t) misconceptions.push(t);
+          }
+        }
+      });
+      const attempt = new QuizAttempt({
+        student: req.user.id,
+        quiz: quiz._id,
+        answers: detailedAnswers,
+        score,
+        timeSpent: detailedAnswers.reduce((s, a) => s + (a.timeSpent || 0), 0),
+        confidenceLevel: 3,
+        misconceptions
+      });
+      await attempt.save();
+      quiz.attempts += 1;
+      quiz.averageScore = ((quiz.averageScore * (quiz.attempts - 1)) + score) / quiz.attempts;
+      await quiz.save();
+      try {
+        const xpReward = getQuizXp(score, quiz.difficulty);
+        let gamification = await Gamification.findOne({ user: req.user.id });
+        if (!gamification) gamification = new Gamification({ user: req.user.id });
+        gamification.xp += xpReward;
+        gamification.totalQuizzesCompleted = (gamification.totalQuizzesCompleted || 0) + 1;
+        gamification.lastActivityAt = new Date();
+        const oldTotal = (gamification.averageQuizScore || 0) * (gamification.totalQuizzesCompleted - 1);
+        gamification.averageQuizScore = (oldTotal + score) / gamification.totalQuizzesCompleted;
+        await gamification.save();
+      } catch {}
+      created.push({ attemptId: attempt._id, quizId: String(quiz._id), score });
+    }
+    if (created.length === 0) {
+      return res.status(404).json({ message: "Unable to seed attempts" });
+    }
+    res.json({ attemptsCreated: created.length, attempts: created });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Generate AI Quiz (Adaptive)
 router.post("/generate", auth, async (req, res) => {
   try {
@@ -730,6 +853,52 @@ router.post("/generate", auth, async (req, res) => {
     console.error("Error generating quiz:", err);
     res.status(500).json({ 
       error: err.message || "Failed to generate quiz. Please try again later." 
+    });
+  }
+});
+
+/**
+ * @route   POST /api/quiz/generate-ai
+ * @desc    Generate a new quiz using AI (Gemini)
+ * @access  Private (Student/Admin)
+ */
+router.post("/generate-ai", auth, async (req, res) => {
+  try {
+    const { topic, difficulty, count = 5 } = req.body;
+    
+    if (!topic) {
+      return res.status(400).json({ message: "Topic is required" });
+    }
+
+    console.log(`🤖 AI Quiz Generation: Topic="${topic}", Difficulty="${difficulty || 'Intermediate'}"`);
+
+    const questions = await generateQuestions(topic, difficulty || "Intermediate", count);
+    
+    if (!questions || questions.length === 0) {
+      return res.status(500).json({ message: "AI failed to generate questions. Please try again." });
+    }
+
+    // Create a new quiz entry in the database
+    const newQuiz = new Quiz({
+      title: `AI Expert: ${topic} (${difficulty || 'Intermediate'})`,
+      description: `A smart quiz dynamically generated by AI to test your knowledge on ${topic}.`,
+      topic: topic,
+      difficulty: difficulty || "Intermediate",
+      duration: Math.ceil(questions.length * 2), // 2 mins per question for AI generated ones
+      questions: questions,
+      createdBy: req.user.id,
+      isActive: true
+    });
+
+    await newQuiz.save();
+    console.log(`✅ AI Quiz saved successfully: ${newQuiz._id}`);
+
+    res.json(newQuiz);
+  } catch (error) {
+    console.error("🔥 AI Generation Route Error:", error);
+    res.status(500).json({ 
+      message: "Failed to generate AI quiz", 
+      error: error.message 
     });
   }
 });

@@ -16,7 +16,7 @@ router.use(auth, allow("admin"));
 // Create user with specific role (teacher or student)
 router.post("/users", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, assignedTeacher } = req.body;
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "name, email, password, role are required" });
     }
@@ -27,8 +27,16 @@ router.post("/users", async (req, res) => {
     if (exists) return res.status(400).json({ message: "Email already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashedPassword, role });
-    res.status(201).json({ id: user._id, name: user.name, email: user.email, role: user.role });
+    const doc = { name, email, password: hashedPassword, role };
+    if (role === 'student' && assignedTeacher) {
+      const teacher = await User.findById(assignedTeacher).select('_id role');
+      if (!teacher || teacher.role !== 'teacher') {
+        return res.status(400).json({ message: "assignedTeacher must be a valid teacher id" });
+      }
+      doc.assignedTeacher = teacher._id;
+    }
+    const user = await User.create(doc);
+    res.status(201).json({ id: user._id, name: user.name, email: user.email, role: user.role, assignedTeacher: user.assignedTeacher });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

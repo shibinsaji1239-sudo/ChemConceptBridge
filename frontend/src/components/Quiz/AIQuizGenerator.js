@@ -40,7 +40,9 @@ const AIQuizGenerator = ({ onQuizGenerated, userPerformance }) => {
         else difficulty = 'Intermediate';
       }
 
-      const { data } = await api.post('/quiz/generate', {
+      const endpoint = mode === 'adaptive' ? '/quiz/generate-ai' : '/quiz/generate';
+      
+      const { data } = await api.post(endpoint, {
         topic,
         difficulty
       });

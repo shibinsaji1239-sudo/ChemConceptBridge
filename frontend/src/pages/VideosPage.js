@@ -1,15 +1,36 @@
 import React, { useEffect, useState } from 'react';
+import api from '../apiClient';
 
 const toYouTubeEmbed = (url) => {
+  if (!url) return null;
   try {
     const u = new URL(url);
+
+    const origin =
+      typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '';
+
+    const buildEmbed = (id) => {
+      // Using youtube-nocookie and minimal params for better compatibility on localhost
+      return `https://www.youtube-nocookie.com/embed/${id}?rel=0`;
+    };
+
     if (u.hostname.includes('youtube.com')) {
+      // watch?v=...
       const v = u.searchParams.get('v');
-      if (v) return `https://www.youtube.com/embed/${v}`;
+      if (v) return buildEmbed(v);
+
+      // /shorts/<id>
+      const shorts = u.pathname.match(/\/shorts\/([^/]+)/);
+      if (shorts?.[1]) return buildEmbed(shorts[1]);
+
+      // /embed/<id>
+      const embed = u.pathname.match(/\/embed\/([^/]+)/);
+      if (embed?.[1]) return buildEmbed(embed[1]);
     }
+
     if (u.hostname === 'youtu.be') {
       const id = u.pathname.slice(1);
-      if (id) return `https://www.youtube.com/embed/${id}`;
+      if (id) return buildEmbed(id);
     }
   } catch (e) {
     return null;
@@ -17,90 +38,38 @@ const toYouTubeEmbed = (url) => {
   return null;
 };
 
-// Decode the current user's role from the JWT token.
-// Falls back to "student" if anything goes wrong.
-const getCurrentRole = () => {
-  let role = 'student';
-  try {
-    const token = localStorage.getItem('token');
-    if (token) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload && payload.role) {
-        role = payload.role;
-      }
-    }
-  } catch (err) {
-    // ignore decode errors and keep default
-  }
-  return role;
-};
-
-// Demo / onboarding videos for each role, focused on chemistry concepts.
+// Demo / onboarding videos - same for all roles (students, teachers, and admins)
 // We use openly available MP4 samples so they reliably play in the HTML5 player.
-const ROLE_DEMO_VIDEOS = {
-  admin: [
-    {
-      title: 'Monitoring Concept Mastery in Acid–Base Chemistry',
-      url: 'https://www.youtube.com/watch?v=7p6V_P3jK5U',
-      description: 'How to read dashboards that track student understanding of pH, titration curves, and neutralization.',
-      type: 'mp4',
-      experimentTitle: 'Acid–Base Concepts Overview'
-    },
-    {
-      title: 'Using Data to Improve Conceptual Learning',
-      url: 'https://www.youtube.com/watch?v=kR_f60N0uXg',
-      description: 'Demo of analytics based on core chemistry topics like thermochemistry, equilibrium, and kinetics.',
-      type: 'mp4',
-      experimentTitle: 'Concept Analytics for Chemistry'
-    }
-  ],
-  teacher: [
-    {
-      title: 'Teaching Acid–Base Titration Concepts',
-      url: 'https://www.youtube.com/watch?v=N6U8027DMTQ',
-      description: 'Concept-focused walkthrough of titration, equivalence point, and indicator choice.',
-      type: 'mp4',
-      experimentTitle: 'Acid–Base Titration'
-    },
-    {
-      title: 'Explaining Chemical Equilibrium with Simulations',
-      url: 'https://www.youtube.com/watch?v=vVIBXk6E5pI',
-      description: 'Using virtual experiments to help students visualize Le Châtelier’s principle and dynamic equilibrium.',
-      type: 'mp4',
-      experimentTitle: 'Chemical Equilibrium'
-    }
-  ],
-  student: [
-    {
-      title: 'Understanding pH and Acid–Base Reactions',
-      url: 'https://www.youtube.com/watch?v=ANi709MYnWg',
-      description: 'Visual explanation of pH scale, strong vs. weak acids/bases, and neutralization concepts.',
-      type: 'mp4',
-      experimentTitle: 'pH and Neutralization'
-    },
-    {
-      title: 'Calorimetry: Measuring Energy Changes',
-      url: 'https://www.youtube.com/watch?v=JuWtBR-rDQk',
-      description: 'Understanding how we measure heat exchange in chemical reactions using calorimetry.',
-      type: 'mp4',
-      experimentTitle: 'Calorimetry Basics'
-    },
-    {
-      title: 'Chemical Equilibrium: Le Chatelier’s Principle',
-      url: 'https://www.youtube.com/watch?v=7zuUV0S5680',
-      description: 'Explore how chemical systems respond to changes in concentration, temperature, and pressure.',
-      type: 'mp4',
-      experimentTitle: 'Chemical Equilibrium'
-    },
-    {
-      title: 'Stoichiometry and Mole Ratios',
-      url: 'https://www.youtube.com/watch?v=SjQG3rJIRwc',
-      description: 'Understanding the quantitative relationships in chemical reactions using the mole concept.',
-      type: 'mp4',
-      experimentTitle: 'Stoichiometry'
-    }
-  ]
-};
+const DEMO_VIDEOS = [
+  {
+    title: 'Understanding pH & Neutralization',
+    url: 'https://www.youtube.com/watch?v=ANi709MYnWg',
+    description: 'Visual explanation of pH scale, strong vs. weak acids/bases, and neutralization concepts.',
+    type: 'youtube',
+    experimentTitle: 'pH and Neutralization'
+  },
+  {
+    title: 'Calorimetry & Energy Changes',
+    url: 'https://www.youtube.com/watch?v=JuWtBR-rDQk',
+    description: 'Understanding how we measure heat exchange in chemical reactions using calorimetry.',
+    type: 'youtube',
+    experimentTitle: 'Calorimetry Basics'
+  },
+  {
+    title: "Le Chatelier's Principle Explained",
+    url: 'https://www.youtube.com/watch?v=XmgRRmxS3is',
+    description: 'Explore how chemical systems respond to changes in concentration, temperature, and pressure.',
+    type: 'youtube',
+    experimentTitle: 'Chemical Equilibrium'
+  },
+  {
+    title: 'Mastering Stoichiometry & Mole Ratios',
+    url: 'https://www.youtube.com/watch?v=UL1jmJaUkaQ',
+    description: 'Understanding the quantitative relationships in chemical reactions using the mole concept.',
+    type: 'youtube',
+    experimentTitle: 'Stoichiometry'
+  }
+];
 
 export default function VideosPage() {
   const [videos, setVideos] = useState([]);
@@ -110,55 +79,93 @@ export default function VideosPage() {
     let mounted = true;
     (async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/experiments', {
-          headers: { Authorization: token ? `Bearer ${token}` : '' }
-        });
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
+        // Students: show (1) experiment videos + (2) platform videos + (3) demo videos
+        const [experimentsRes, platformVideosRes] = await Promise.all([
+          api.get('/experiments'),
+          api.get('/videos')
+        ]);
+
+        const data = experimentsRes.data || [];
+        const platformVideos = platformVideosRes.data || [];
         if (!mounted) return;
 
         const agg = [];
         data.forEach((exp) => {
           (exp.videos || []).forEach((v, i) => {
-            agg.push({
-              experimentId: exp._id || exp.id,
-              experimentTitle: exp.title || exp.name,
-              video: v,
-              index: i,
-              embed: toYouTubeEmbed(v.url)
-            });
+            if (!v || !v.url) {
+              console.warn('Skipping video with missing URL:', v);
+              return;
+            }
+            const embed = toYouTubeEmbed(v.url);
+            if (embed) {
+              agg.push({
+                experimentId: exp._id || exp.id,
+                experimentTitle: exp.title || exp.name,
+                video: v,
+                index: i,
+                embed: embed
+              });
+            } else if (v.type === 'youtube') {
+              console.warn('Failed to convert YouTube URL to embed:', v.url);
+            }
           });
         });
 
-        // Always include role-based demo videos
-        const role = getCurrentRole();
-        const demoList = ROLE_DEMO_VIDEOS[role] || ROLE_DEMO_VIDEOS.student;
+        // Include platform videos (backend already filters to public for students)
+        platformVideos.forEach((v, i) => {
+          if (!v || !v.url) {
+            console.warn('Skipping platform video with missing URL:', v);
+            return;
+          }
+          const embed = toYouTubeEmbed(v.url);
+          if (embed) {
+            agg.push({
+              experimentId: `platform-${v._id || i}`,
+              experimentTitle: v.experimentTitle || 'General',
+              video: v,
+              index: i,
+              embed: embed
+            });
+          } else if (v.type === 'youtube') {
+            console.warn('Failed to convert platform YouTube URL to embed:', v.url);
+          }
+        });
+
+        // Always include demo videos
+        const demoList = DEMO_VIDEOS;
         demoList.forEach((demo, i) => {
-          agg.push({
-            experimentId: `demo-${role}-${i}`,
-            experimentTitle: demo.experimentTitle,
-            video: demo,
-            index: i,
-            embed: toYouTubeEmbed(demo.url)
-          });
+          const embed = toYouTubeEmbed(demo.url);
+          if (embed) {
+            agg.push({
+              experimentId: `demo-${i}`,
+              experimentTitle: demo.experimentTitle,
+              video: demo,
+              index: i,
+              embed: embed
+            });
+          }
         });
 
         setVideos(agg);
       } catch (err) {
         console.error('Videos load failed', err);
 
-        // If API fails for any reason, still show role-based demo videos
+        // If API fails for any reason, still show demo videos
         if (mounted) {
-          const role = getCurrentRole();
-          const demoList = ROLE_DEMO_VIDEOS[role] || ROLE_DEMO_VIDEOS.student;
-          const fallback = demoList.map((demo, i) => ({
-            experimentId: `demo-${role}-${i}`,
-            experimentTitle: demo.experimentTitle,
-            video: demo,
-            index: i,
-            embed: toYouTubeEmbed(demo.url)
-          }));
+          const demoList = DEMO_VIDEOS;
+          const fallback = [];
+          demoList.forEach((demo, i) => {
+            const embed = toYouTubeEmbed(demo.url);
+            if (embed) {
+              fallback.push({
+                experimentId: `demo-${i}`,
+                experimentTitle: demo.experimentTitle,
+                video: demo,
+                index: i,
+                embed: embed
+              });
+            }
+          });
           setVideos(fallback);
         }
       } finally {
@@ -170,7 +177,7 @@ export default function VideosPage() {
     };
   }, []);
 
-  if (loading) return <div className="p-6">Loading videos…</div>;
+  if (loading) return <div className="p-6">Loading videos</div>;
 
   return (
     <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', padding: '32px 0' }}>
@@ -186,7 +193,7 @@ export default function VideosPage() {
             All Experiment Videos
           </h2>
           <p style={{ marginTop: 6, color: '#6b7280', fontSize: 14 }}>
-            Curated concept videos from your virtual chemistry lab, tailored to your role.
+            Curated concept videos from your virtual chemistry lab.
           </p>
         </header>
 
@@ -248,28 +255,21 @@ export default function VideosPage() {
                 )}
 
                 <div>
-                  {v.embed ? (
+                  {v.embed && (
                     <iframe
                       title={v.video.title}
                       src={v.embed}
                       width="100%"
                       height="260"
                       frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
+                      referrerPolicy="no-referrer-when-downgrade"
                       style={{ borderRadius: 8 }}
-                    />
-                  ) : (
-                    <video
-                      controls
-                      style={{
-                        width: '100%',
-                        borderRadius: 8,
-                        backgroundColor: '#000'
+                      onError={(e) => {
+                        console.error('Video embed error:', v.video.url);
                       }}
-                    >
-                      <source src={v.video.url} />
-                      Your browser does not support HTML5 video.
-                    </video>
+                    />
                   )}
                 </div>
               </article>

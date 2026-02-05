@@ -180,7 +180,7 @@ const ARMultimediaModule = () => {
             <h2>🔒 AR Multimedia Access Required</h2>
             <p>
               Unlock interactive 3D molecule viewers, virtual lab simulations, and reaction visualizers
-              with our AR Multimedia subscription.
+              with a Pro Student or Teacher plan.
             </p>
             <div className="subscription-options">
               <button

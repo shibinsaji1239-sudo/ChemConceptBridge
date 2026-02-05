@@ -9,7 +9,7 @@ const AdminUsers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'teacher' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'teacher', assignedTeacher: '' });
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -50,6 +50,8 @@ const AdminUsers = () => {
     else if (!/[A-Z]/.test(form.password)) errors.password = 'Password must contain at least one uppercase letter';
     else if (!/[0-9]/.test(form.password)) errors.password = 'Password must contain at least one number';
     
+    if (form.role === 'student' && !form.assignedTeacher) errors.assignedTeacher = 'Assign a teacher';
+    
     return errors;
   };
 
@@ -68,11 +70,12 @@ const AdminUsers = () => {
     setError('');
     
     try {
-      const body = { ...form };
+      const body = { name: form.name, email: form.email, password: form.password, role: form.role };
+      if (form.role === 'student' && form.assignedTeacher) body.assignedTeacher = form.assignedTeacher;
       const { data } = await api.post('/admin/users', body);
       setUsers(prev => [data, ...prev]);
       setCreating(false);
-      setForm({ name: '', email: '', password: '', role: 'teacher' });
+      setForm({ name: '', email: '', password: '', role: 'teacher', assignedTeacher: '' });
       toast.success(`User ${data.name} created successfully`);
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to create user');
@@ -181,17 +184,34 @@ const AdminUsers = () => {
               />
               {formErrors.password && <div className="error-text">{formErrors.password}</div>}
             </div>
+          <div className="field">
+            <label>Role</label>
+            <select
+              value={form.role}
+              onChange={e => setForm({ ...form, role: e.target.value })}
+              className={formErrors.role ? 'error' : ''}
+            >
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+            </select>
+          </div>
+          {form.role === 'student' && (
             <div className="field">
-              <label>Role</label>
+              <label>Assign to Teacher</label>
               <select
-                value={form.role}
-                onChange={e => setForm({ ...form, role: e.target.value })}
-                className={formErrors.role ? 'error' : ''}
+                value={form.assignedTeacher}
+                onChange={e => setForm({ ...form, assignedTeacher: e.target.value })}
+                className={formErrors.assignedTeacher ? 'error' : ''}
+                required
               >
-                <option value="teacher">Teacher</option>
-                <option value="student">Student</option>
+                <option value="">Select teacher…</option>
+                {users.filter(u => u.role === 'teacher').map(t => (
+                  <option key={t._id} value={t._id}>{t.name || t.email}</option>
+                ))}
               </select>
+              {formErrors.assignedTeacher && <div className="error-text">{formErrors.assignedTeacher}</div>}
             </div>
+          )}
           </div>
           <div className="row end">
             <button type="button" className="btn" onClick={() => setCreating(false)}>Cancel</button>

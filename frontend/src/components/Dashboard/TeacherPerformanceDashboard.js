@@ -72,14 +72,56 @@ const TeacherPerformanceDashboard = ({ user }) => {
     }
   };
 
-  if (loading) return <div>Loading performance data...</div>;
+  const handleDownloadReport = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/reports/teacher', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'Class_Performance_Summary.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (err) {
+      console.error('Download failed', err);
+      setError('Failed to download class report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading && !performance.totalAttempts) return <div>Loading performance data...</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="teacher-performance-dashboard">
       <div className="perf-header">
-        <h2>Performance Dashboard</h2>
-        <p>Track your class performance and quiz analytics</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div>
+            <h2>Performance Dashboard</h2>
+            <p>Track your class performance and quiz analytics</p>
+          </div>
+          <button 
+            className="download-report-btn" 
+            onClick={handleDownloadReport} 
+            disabled={loading}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#4a90e2',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            {loading ? 'Generating...' : '📊 Download Class Report'}
+          </button>
+        </div>
       </div>
       
       <div className="perf-summary">
