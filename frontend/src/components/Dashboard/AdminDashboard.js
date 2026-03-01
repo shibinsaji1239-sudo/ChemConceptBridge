@@ -10,6 +10,15 @@ import SubscriptionPage from '../../pages/SubscriptionPage';
 import VideoManager from '../Videos/VideoManager';
 import ConceptDependencyRiskAnalyzer from '../ConceptDependency/ConceptDependencyRiskAnalyzer';
 import LearningPath from '../Progress/LearningPath';
+import ExamManager from '../Exams/ExamManager';
+import RemediationModule from '../Remediation/RemediationModule';
+import ARMultimediaModule from '../ARMultimedia/ARMultimediaModule';
+import RevisionModule from '../Revision/RevisionModule';
+import PeriodicTable from '../PeriodicTable/PeriodicTable';
+import ChemicalEquations from '../ChemicalEquations/ChemicalEquations';
+import ChemistryCalculator from '../ChemistryCalculator/ChemistryCalculator';
+import MoleculeAnimation from '../MoleculeAnimation/MoleculeAnimation';
+import Leaderboard from '../Gamification/Leaderboard';
 import api from '../../apiClient';
 import { toast } from 'react-toastify';
 import {
@@ -443,6 +452,8 @@ const AdminDashboard = ({ activeTab, setActiveTab }) => {
         return <AdminQuizzes />;
       case 'videos':
         return <VideoManager role="admin" />;
+      case 'exams':
+        return <ExamManager role="admin" />;
       case 'dependency-risk':
         return <ConceptDependencyRiskAnalyzer mode="admin" />;
       case 'analytics':
@@ -615,6 +626,20 @@ const AdminDashboard = ({ activeTab, setActiveTab }) => {
             )}
           </div>
         );
+      case 'remediation':
+        return <RemediationModule />;
+      case 'ar-multimedia':
+        return <ARMultimediaModule />;
+      case 'revision':
+        return <RevisionModule />;
+      case 'chemical-equations':
+        return <ChemicalEquations />;
+      case 'chemistry-calculator':
+        return <ChemistryCalculator />;
+      case 'molecule-animation':
+        return <MoleculeAnimation />;
+      case 'gamification':
+        return <Leaderboard />;
       default:
         return renderOverview();
     }

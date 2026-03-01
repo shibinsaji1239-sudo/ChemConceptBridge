@@ -8,6 +8,7 @@ const defaultSettings = {
   conceptMapEnabled: true,
   analyticsEnabled: true,
   chemicalEquationsEnabled: true,
+  aiThoughtPathRecorderEnabled: false,
 };
 
 const AdminSystemSettings = () => {
@@ -27,6 +28,7 @@ const AdminSystemSettings = () => {
         conceptMapEnabled: !!data.conceptMapEnabled,
         analyticsEnabled: !!data.analyticsEnabled,
         chemicalEquationsEnabled: !!data.chemicalEquationsEnabled,
+        aiThoughtPathRecorderEnabled: !!data.aiThoughtPathRecorderEnabled,
       });
     } catch (e) {
       setError(e?.response?.data?.message || 'Failed to load system settings');
@@ -56,6 +58,7 @@ const AdminSystemSettings = () => {
         conceptMapEnabled: !!data.conceptMapEnabled,
         analyticsEnabled: !!data.analyticsEnabled,
         chemicalEquationsEnabled: !!data.chemicalEquationsEnabled,
+        aiThoughtPathRecorderEnabled: !!data.aiThoughtPathRecorderEnabled,
       });
       toast.success('System settings saved');
     } catch (e) {
@@ -156,6 +159,18 @@ const AdminSystemSettings = () => {
                 type="checkbox"
                 checked={settings.chemicalEquationsEnabled}
                 onChange={() => handleToggle('chemicalEquationsEnabled')}
+              />
+              <span className="toggle-slider" />
+            </label>
+          </div>
+
+          <div className="status-item">
+            <span className="status-label">AI Thought Path Recorder (NLP)</span>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={settings.aiThoughtPathRecorderEnabled}
+                onChange={() => handleToggle('aiThoughtPathRecorderEnabled')}
               />
               <span className="toggle-slider" />
             </label>

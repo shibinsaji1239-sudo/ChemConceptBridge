@@ -30,7 +30,7 @@ test.describe('Module 4: Quiz and Scoring Functionality', () => {
         '[class*="quiz"] button',
         'button[onclick*="quiz"]'
       ];
-      
+
       let clicked = false;
       for (const selector of selectors) {
         const button = page.locator(selector).first();
@@ -46,7 +46,7 @@ test.describe('Module 4: Quiz and Scoring Functionality', () => {
           }
         }
       }
-      
+
       if (!clicked) {
         await page.waitForTimeout(2000);
       }
@@ -61,37 +61,61 @@ test.describe('Module 4: Quiz and Scoring Functionality', () => {
       }
     });
 
-    await test.step('Step 4: Answer quiz questions', async () => {
-      // Look for question and answer options
-      const question = page.locator('.question, [class*="question"], h2, h3').first();
-      if (await question.isVisible({ timeout: 5000 })) {
-        // Try to select an answer - use proper selectors
-        const radioOption = page.locator('input[type="radio"]').first();
-        if (await radioOption.isVisible({ timeout: 3000 })) {
-          await radioOption.click();
+    await test.step('Step 4: Answer quiz questions and finish', async () => {
+      let isLastQuestion = false;
+      let iterations = 0;
+
+      while (!isLastQuestion && iterations < 10) {
+        iterations++;
+
+        // Answer current question
+        const options = page.locator('button[class*="option"], .option, input[type="radio"]');
+        if (await options.first().isVisible({ timeout: 5000 })) {
+          await options.first().click();
+          await page.waitForTimeout(500);
+        }
+
+        // Check for Next or Finish button
+        const nextButton = page.locator('button:has-text("Next")');
+        const finishButton = page.locator('button:has-text("Finish"), button:has-text("Complete"), button:has-text("Submit")');
+
+        if (await finishButton.isVisible({ timeout: 2000 })) {
+          await finishButton.click();
+          isLastQuestion = true;
+        } else if (await nextButton.isVisible({ timeout: 2000 })) {
+          await nextButton.click();
           await page.waitForTimeout(1000);
         } else {
-          // Try button options
-          const buttonOption = page.locator('button[class*="option"], [class*="option"] button').first();
-          if (await buttonOption.isVisible({ timeout: 3000 })) {
-            await buttonOption.click();
-            await page.waitForTimeout(1000);
-          }
+          // If neither found, maybe it's finished or stuck
+          break;
         }
       }
     });
 
-    await test.step('Step 5: Submit quiz and verify score', async () => {
-      const submitButton = page.locator('button:has-text("Submit"), button:has-text("Finish"), button:has-text("Complete")').first();
-      if (await submitButton.isVisible({ timeout: 5000 })) {
-        await submitButton.click();
-        await page.waitForTimeout(3000);
-      }
-      
+    await test.step('Step 5: Verify score', async () => {
+      await page.waitForTimeout(3000);
       // Check for score or results
-      const scoreElements = page.locator('.score, [class*="score"], [class*="result"], text=/score/i, text=/result/i').first();
-      if (await scoreElements.isVisible({ timeout: 5000 })) {
-        await expect(scoreElements).toBeVisible();
+      const scoreSelectors = [
+        '.score',
+        '[class*="score"]',
+        '[class*="result"]',
+        'text=/score/i',
+        'text=/result/i',
+        'h2:has-text("Results")'
+      ];
+
+      let found = false;
+      for (const selector of scoreSelectors) {
+        if (await page.locator(selector).first().isVisible({ timeout: 2000 })) {
+          await expect(page.locator(selector).first()).toBeVisible();
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        // Fallback: check if we are on a results-like page
+        await expect(page).toHaveURL(/.*quiz.*/i);
       }
     });
   });

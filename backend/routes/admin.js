@@ -199,7 +199,8 @@ router.put("/system-settings", async (req, res) => {
       "allowRegistration",
       "conceptMapEnabled",
       "analyticsEnabled",
-      "chemicalEquationsEnabled"
+      "chemicalEquationsEnabled",
+      "aiThoughtPathRecorderEnabled"
     ];
 
     const update = {};

@@ -26,13 +26,13 @@ module.exports = defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    
+
     /* Take screenshot on failure */
     screenshot: 'only-on-failure',
-    
+
     /* Record video on failure */
     video: 'retain-on-failure',
-    
+
     /* Increase timeout for real backend calls */
     actionTimeout: 30000,
     navigationTimeout: 30000,
@@ -78,7 +78,7 @@ module.exports = defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm start',
+    command: 'cmd /c "set PORT=3002 && npm start"',
     url: 'http://localhost:3002',
     reuseExistingServer: true,
     timeout: 300 * 1000,

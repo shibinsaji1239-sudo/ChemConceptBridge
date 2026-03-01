@@ -7,7 +7,14 @@ const quizAttemptSchema = new mongoose.Schema({
     questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
     selectedOption: { type: Number, required: true },
     isCorrect: { type: Boolean, required: true },
-    timeSpent: { type: Number, default: 0 } // in seconds
+    timeSpent: { type: Number, default: 0 }, // in seconds
+    reasoning: { type: String },
+    nlpAnalysis: {
+      thoughtStructure: { type: Number, min: 0, max: 100 },
+      logicalGaps: { type: Number, min: 0, max: 100 },
+      clarityScore: { type: Number, min: 0, max: 100 },
+      feedback: { type: String }
+    }
   }],
   score: { type: Number, required: true }, // percentage
   timeSpent: { type: Number, required: true }, // total time in seconds

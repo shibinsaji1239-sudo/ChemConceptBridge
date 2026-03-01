@@ -19,6 +19,7 @@ import RevisionModule from '../Revision/RevisionModule';
 import SubscriptionModule from './SubscriptionModule';
 import KnowledgeGraphVisualizer from '../KnowledgeGraph/KnowledgeGraphVisualizer';
 import ConceptDependencyRiskAnalyzer from '../ConceptDependency/ConceptDependencyRiskAnalyzer';
+import StudentExamSelector from '../Exams/StudentExamSelector';
 
 const StudentDashboard = ({ activeTab, setActiveTab }) => {
   const [studentStats, setStudentStats] = useState({
@@ -322,6 +323,15 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
               setActiveTab('concepts');
             }}
           />
+        );
+      case 'exams':
+        return (
+          <div className="dashboard-card">
+            <h3>Scheduled Exams</h3>
+            <div style={{ paddingTop: 8 }}>
+              <StudentExamSelector />
+            </div>
+          </div>
         );
       case 'remediation':
         return <RemediationModule />;

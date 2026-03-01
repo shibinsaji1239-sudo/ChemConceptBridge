@@ -58,6 +58,7 @@ const revisionRoutes = require("./routes/revision");
 const chatRoutes = require("./routes/chat"); // ✅ Chat route added
 const cognitiveRoutes = require("./routes/cognitive"); // ✅ Cognitive Load Analyzer
 const conceptDependencyRoutes = require("./routes/conceptDependency"); // ✅ Concept Dependency Risk Analyzer
+const examRoutes = require("./routes/exams");
 
 // ====================
 // 🚏 API Route Mounting
@@ -83,6 +84,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/revision", revisionRoutes);
 app.get("/api/test-reports", (req, res) => res.json({ message: "Reports route is reachable" }));
 app.use("/api/chat", chatRoutes); // ✅ Chat route mounted
+app.use("/api/exams", examRoutes);
 
 // ====================
 // 🧠 Health Check Route

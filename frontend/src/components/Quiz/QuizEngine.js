@@ -16,6 +16,8 @@ const QuizEngine = () => {
   const [showResults, setShowResults] = useState(false);
   const [lastAttemptId, setLastAttemptId] = useState(null);
   const [userPerformance, setUserPerformance] = useState(null);
+  const [systemSettings, setSystemSettings] = useState(null);
+  const [reasonings, setReasonings] = useState({});
 
   // 🧠 Cognitive Load Tracking
   const [cognitiveSessionId, setCognitiveSessionId] = useState(null);
@@ -59,6 +61,13 @@ const QuizEngine = () => {
         }
       } catch (e) {
         console.error("Failed to fetch prediction", e);
+      }
+
+      try {
+        const { data } = await api.get('/admin/system-settings');
+        setSystemSettings(data);
+      } catch (e) {
+        console.error("Failed to fetch system settings", e);
       }
     })();
   }, []);
@@ -113,6 +122,13 @@ const QuizEngine = () => {
     }));
   };
 
+  const handleReasoningChange = (questionId, value) => {
+    setReasonings(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
+  };
+
   const nextQuestion = async () => {
     // Log cognitive data for current question
     try {
@@ -156,7 +172,12 @@ const QuizEngine = () => {
     // Submit attempt to server
     try {
       const payload = {
-        answers: Object.entries(answers).map(([questionId, selectedOption]) => ({ questionId, selectedOption, timeSpent: 0 })),
+        answers: Object.entries(answers).map(([questionId, selectedOption]) => ({ 
+          questionId, 
+          selectedOption, 
+          timeSpent: 0,
+          reasoning: reasonings[questionId] || ''
+        })),
         timeSpent: (selectedQuiz.duration * 60) - timeLeft,
         confidenceLevel: 3
       };
@@ -304,6 +325,19 @@ const QuizEngine = () => {
                 </button>
               ))}
             </div>
+
+            {systemSettings?.aiThoughtPathRecorderEnabled && (
+              <div className="reasoning-module">
+                <p className="reasoning-prompt"><strong>AI Thought Path Recorder:</strong> Explain your reasoning in 2 lines.</p>
+                <textarea
+                  className="reasoning-input"
+                  placeholder="Why did you choose this answer? (Max 2 lines)"
+                  value={reasonings[question.id] || ''}
+                  onChange={(e) => handleReasoningChange(question.id, e.target.value)}
+                  rows={2}
+                />
+              </div>
+            )}
           </div>
 
           <div className="quiz-navigation">

@@ -9,6 +9,15 @@ import VideoManager from '../Videos/VideoManager';
 import ConceptDependencyRiskAnalyzer from '../ConceptDependency/ConceptDependencyRiskAnalyzer';
 import TeacherPerformanceDashboard from './TeacherPerformanceDashboard';
 import LearningPath from '../Progress/LearningPath';
+import ExamManager from '../Exams/ExamManager';
+import RemediationModule from '../Remediation/RemediationModule';
+import ARMultimediaModule from '../ARMultimedia/ARMultimediaModule';
+import RevisionModule from '../Revision/RevisionModule';
+import PeriodicTable from '../PeriodicTable/PeriodicTable';
+import ChemicalEquations from '../ChemicalEquations/ChemicalEquations';
+import ChemistryCalculator from '../ChemistryCalculator/ChemistryCalculator';
+import MoleculeAnimation from '../MoleculeAnimation/MoleculeAnimation';
+import Leaderboard from '../Gamification/Leaderboard';
 
 // Simple list and create UI for quizzes and concepts + Students tab aggregated from quiz stats
 const TeacherDashboard = ({ activeTab, setActiveTab, user }) => {
@@ -645,6 +654,8 @@ const TeacherDashboard = ({ activeTab, setActiveTab, user }) => {
         return renderQuizzes();
       case 'videos':
         return <VideoManager role="teacher" />;
+      case 'exams':
+        return <ExamManager role="teacher" />;
       case 'dependency-risk':
         return <ConceptDependencyRiskAnalyzer mode="teacher" />;
       case 'students':
@@ -846,6 +857,22 @@ const TeacherDashboard = ({ activeTab, setActiveTab, user }) => {
         return <ContentManagement user={user} />;
       case 'subscription':
         return <SubscriptionPage user={{ role: 'teacher' }} />;
+      case 'remediation':
+        return <RemediationModule />;
+      case 'ar-multimedia':
+        return <ARMultimediaModule />;
+      case 'revision':
+        return <RevisionModule />;
+      case 'periodic-table':
+        return <PeriodicTable />;
+      case 'chemical-equations':
+        return <ChemicalEquations />;
+      case 'chemistry-calculator':
+        return <ChemistryCalculator />;
+      case 'molecule-animation':
+        return <MoleculeAnimation />;
+      case 'gamification':
+        return <Leaderboard />;
       default:
         return renderOverview();
     }

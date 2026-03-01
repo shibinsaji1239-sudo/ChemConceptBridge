@@ -7,6 +7,7 @@ const SystemSettingsSchema = new mongoose.Schema(
     conceptMapEnabled: { type: Boolean, default: true },
     analyticsEnabled: { type: Boolean, default: true },
     chemicalEquationsEnabled: { type: Boolean, default: true },
+    aiThoughtPathRecorderEnabled: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

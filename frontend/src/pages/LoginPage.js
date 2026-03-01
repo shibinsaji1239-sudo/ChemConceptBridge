@@ -83,14 +83,14 @@ function LoginPage() {
         data.user.role === "admin"
           ? "/admin-dashboard"
           : data.user.role === "teacher"
-          ? "/teacher-dashboard"
-          : "/student-dashboard";
+            ? "/teacher-dashboard"
+            : "/student-dashboard";
 
       navigate(next);
     } catch (err) {
       console.error("Login error:", err);
       let errorMessage = "Login failed. Please try again.";
-      
+
       if (err.message === "Network Error" || err.code === "ERR_NETWORK" || err.code === "ECONNREFUSED") {
         errorMessage = "Cannot connect to server. Please ensure the backend server is running on http://localhost:10000";
       } else if (err.response?.data?.message) {
@@ -100,7 +100,7 @@ function LoginPage() {
       } else if (err.response?.status === 500) {
         errorMessage = "Server error. Please try again later.";
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -136,8 +136,8 @@ function LoginPage() {
         data.user.role === "admin"
           ? "/admin-dashboard"
           : data.user.role === "teacher"
-          ? "/teacher-dashboard"
-          : "/student-dashboard";
+            ? "/teacher-dashboard"
+            : "/student-dashboard";
 
       navigate(next);
     } catch (err) {
@@ -179,6 +179,7 @@ function LoginPage() {
         <form onSubmit={handleLogin}>
           <label>Email Address</label>
           <input
+            name="email"
             type="email"
             placeholder="Enter your email"
             value={email}
@@ -191,6 +192,7 @@ function LoginPage() {
             <Link to="/forgot-password" className="forgot-password-link">Forgot Password?</Link>
           </div>
           <input
+            name="password"
             type="password"
             placeholder="Enter your password"
             value={password}
