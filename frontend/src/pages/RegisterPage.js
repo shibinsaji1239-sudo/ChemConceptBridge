@@ -76,24 +76,31 @@ function RegisterPage() {
     e.preventDefault();
     setTouched({ name: true, email: true, password: true, confirmPassword: true });
     setError("");
-    const nameError = validateName(name);
-    const emailError = validateEmail(email);
+    const cleanedName = name.trim();
+    const cleanedEmail = email.trim();
+    const nameError = validateName(cleanedName);
+    const emailError = validateEmail(cleanedEmail);
     const passwordError = validatePassword(password);
     const confirmPasswordError = validateConfirmPassword(confirmPassword);
     if (nameError || emailError || passwordError || confirmPasswordError) {
       setError(nameError || emailError || passwordError || confirmPasswordError);
       return;
     }
+    if (emailExists) {
+      setError("This email is already registered");
+      return;
+    }
     setLoading(true);
     try {
-      await api.post("/auth/register", { name, email, password });
+      await api.post("/auth/register", { name: cleanedName, email: cleanedEmail, password });
       // Auto-login
-      const loginRes = await api.post("/auth/login", { email, password });
+      const loginRes = await api.post("/auth/login", { email: cleanedEmail, password });
       const token = loginRes.data.token;
       localStorage.setItem("token", token);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
+      const networkMsg = !err.response ? `Network error: cannot reach API at ${api.defaults.baseURL}` : null;
+      setError(networkMsg || err.response?.data?.message || err.response?.data?.error || err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -182,8 +189,7 @@ function RegisterPage() {
           <button
             type="submit"
             className="register-btn"
-            disabled={loading}
-          disabled={loading || emailChecking || emailExists || !!validateEmail(email)}
+            disabled={loading || emailChecking || emailExists || !!validateEmail(email)}
           >
             {loading ? 'Registering...' : (emailExists ? 'Email Already Registered' : 'Create Account')}
           </button>

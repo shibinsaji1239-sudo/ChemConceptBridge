@@ -14,7 +14,11 @@ import PerformanceDashboard from '../Progress/PerformanceDashboard';
 import PeriodicTable from '../PeriodicTable/PeriodicTable';
 import ChemicalEquations from '../ChemicalEquations/ChemicalEquations';
 import ChemistryCalculator from '../ChemistryCalculator/ChemistryCalculator';
-import ARMultimediaModule from '../ARMultimedia/ARMultimediaModule';
+import ARMultimediaModule from '../AR/ARMultimediaModule';
+import MoleculeAnimation from '../AR/MoleculeAnimation';
+import LabSimulation from '../LabSimulation/LabSimulation';
+import ChemistrySandbox from '../LabSimulation/ChemistrySandbox';
+import ReactionVisualizer from '../ReactionVisualizer/ReactionVisualizer';
 import RevisionModule from '../Revision/RevisionModule';
 import SubscriptionModule from './SubscriptionModule';
 import KnowledgeGraphVisualizer from '../KnowledgeGraph/KnowledgeGraphVisualizer';
@@ -340,7 +344,13 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
       case 'ar-multimedia':
         return <ARMultimediaModule />;
       case 'molecule-animation':
-        return <ARMultimediaModule />;
+        return <MoleculeAnimation />;
+      case 'lab-simulation':
+        return <LabSimulation />;
+      case 'chemistry-sandbox':
+        return <ChemistrySandbox />;
+      case 'reaction-visualizer':
+        return <ReactionVisualizer />;
       case 'periodic-table':
         return <PeriodicTable />;
       case 'chemical-equations':

@@ -1,0 +1,24 @@
+
+> backend@1.0.0 start
+> node server.js
+
+[dotenv@17.2.1] injecting env (17) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+✅ Chat Routes Loaded
+✅ MongoDB connected
+🚀 Server running on port 10000
+[REQUEST] OPTIONS /api/user/stats
+[REQUEST] OPTIONS /api/learning-path
+[REQUEST] OPTIONS /api/quiz/attempts/student
+[REQUEST] OPTIONS /api/learning-path
+[REQUEST] OPTIONS /api/revision/schedule
+[REQUEST] OPTIONS /api/user/stats
+[REQUEST] OPTIONS /api/quiz/attempts/student
+[REQUEST] OPTIONS /api/revision/schedule
+[REQUEST] GET /api/user/stats
+[REQUEST] GET /api/learning-path
+[REQUEST] GET /api/quiz/attempts/student
+[REQUEST] GET /api/revision/schedule
+[REQUEST] GET /api/revision/schedule
+[REQUEST] GET /api/quiz/attempts/student
+[REQUEST] GET /api/user/stats
+[REQUEST] GET /api/learning-path

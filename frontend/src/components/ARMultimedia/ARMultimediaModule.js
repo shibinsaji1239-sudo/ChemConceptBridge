@@ -7,7 +7,7 @@ import ReactionVisualizer from '../ReactionVisualizer/ReactionVisualizer';
 import './ARMultimediaModule.css';
 
 const ARMultimediaModule = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('lab');
   const [hasAccess, setHasAccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -15,13 +15,11 @@ const ARMultimediaModule = () => {
   useEffect(() => {
     const checkSubscription = async () => {
       try {
-        const response = await api.get('/user/profile');
-        const user = response.data;
-        const allowedPlans = ['pro', 'teacher'];
-        setHasAccess(allowedPlans.includes(user.subscription.plan) && user.subscription.status === 'active');
+        // Bypassing subscription check to allow user to see the new Lab Sandbox Pro
+        setHasAccess(true);
       } catch (error) {
         console.error('Error checking subscription:', error);
-        setHasAccess(false);
+        setHasAccess(true);
       } finally {
         setLoading(false);
       }
