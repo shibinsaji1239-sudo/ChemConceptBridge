@@ -1,6 +1,7 @@
 const ConceptDependency = require('../models/ConceptDependency');
 const Concept = require('../models/Concept');
 const QuizAttempt = require('../models/QuizAttempt');
+const User = require('../models/User');
 
 function assertCanAccessUser(req, userId) {
   if (!req.user) return false;
@@ -9,80 +10,114 @@ function assertCanAccessUser(req, userId) {
 }
 
 async function buildGraphObject() {
-  const concepts = await Concept.find({ status: 'approved', isActive: true }).select(
-    '_id title topic difficulty prerequisites'
-  );
-  const dependencies = await ConceptDependency.find({ verified: true }).select(
-    'sourceConcept targetConcept dependencyType dependencyWeight riskScore historicalFailureRate confidence'
-  );
+  try {
+    // Use all concepts (not just approved) so the risk analyzer works
+    // out-of-the-box in development and small deployments.
+    const concepts = await Concept.find({}).select(
+      '_id title topic difficulty prerequisites'
+    );
+    const dependencies = await ConceptDependency.find({ verified: true }).select(
+      'sourceConcept targetConcept dependencyType dependencyWeight riskScore historicalFailureRate confidence'
+    );
 
-  const nodes = concepts.map((c) => ({
-    id: c._id.toString(),
-    title: c.title,
-    topic: c.topic,
-    difficulty: c.difficulty
-  }));
+    if (!concepts) return { nodes: [], edges: [], outgoing: {}, incoming: {} };
 
-  const edges = [];
-  const outgoing = {};
-  const incoming = {};
+    const nodes = concepts.map((c) => ({
+      id: c._id ? c._id.toString() : 'unknown',
+      title: c.title || 'Untitled',
+      topic: c.topic || 'General',
+      difficulty: c.difficulty || 'Beginner'
+    }));
 
-  const addEdge = (edge) => {
-    edges.push(edge);
-    if (!outgoing[edge.source]) outgoing[edge.source] = [];
-    if (!incoming[edge.target]) incoming[edge.target] = [];
-    outgoing[edge.source].push(edge.target);
-    incoming[edge.target].push(edge.source);
-  };
+    const edges = [];
+    const outgoing = {};
+    const incoming = {};
 
-  // Prerequisite edges from Concept model
-  for (const concept of concepts) {
-    for (const prereq of concept.prerequisites || []) {
-      addEdge({
-        source: prereq.toString(),
-        target: concept._id.toString(),
-        type: 'prerequisite',
-        weight: 1.0
-      });
+    const addEdge = (edge) => {
+      if (!edge.source || !edge.target) return;
+      edges.push(edge);
+      if (!outgoing[edge.source]) outgoing[edge.source] = [];
+      if (!incoming[edge.target]) incoming[edge.target] = [];
+      outgoing[edge.source].push(edge.target);
+      incoming[edge.target].push(edge.source);
+    };
+
+    // Prerequisite edges from Concept model
+    for (const concept of concepts) {
+      if (!concept || !concept._id || !concept.prerequisites) continue;
+      for (const prereq of concept.prerequisites) {
+        if (!prereq) continue;
+        try {
+          addEdge({
+            source: prereq.toString(),
+            target: concept._id.toString(),
+            type: 'prerequisite',
+            weight: 1.0
+          });
+        } catch (err) {
+          console.warn(`Error adding prerequisite edge for concept ${concept._id}: ${err.message}`);
+        }
+      }
     }
-  }
 
-  // Additional (verified) edges from ConceptDependency model
-  for (const dep of dependencies) {
-    addEdge({
-      source: dep.sourceConcept.toString(),
-      target: dep.targetConcept.toString(),
-      type: dep.dependencyType,
-      weight: dep.dependencyWeight,
-      riskScore: dep.riskScore,
-      historicalFailureRate: dep.historicalFailureRate,
-      confidence: dep.confidence
-    });
-  }
+    // Additional (verified) edges from ConceptDependency model
+    for (const dep of dependencies) {
+      if (!dep || !dep.sourceConcept || !dep.targetConcept) continue;
+      try {
+        addEdge({
+          source: dep.sourceConcept.toString(),
+          target: dep.targetConcept.toString(),
+          type: dep.dependencyType || 'prerequisite',
+          weight: dep.dependencyWeight || 1.0,
+          riskScore: dep.riskScore || 0.5,
+          historicalFailureRate: dep.historicalFailureRate || 0,
+          confidence: dep.confidence || 0.5
+        });
+      } catch (err) {
+        console.warn(`Error adding verified edge: ${err.message}`);
+      }
+    }
 
-  return { nodes, edges, outgoing, incoming };
+    return { nodes, edges, outgoing, incoming };
+  } catch (error) {
+    console.error('Error in buildGraphObject:', error);
+    return { nodes: [], edges: [], outgoing: {}, incoming: {} };
+  }
 }
 
 async function computeTopicMasteryMap(userId) {
-  const attempts = await QuizAttempt.find({ student: userId }).populate('quiz', 'topic');
-  const byTopic = new Map(); // topic -> {sum,count}
+  try {
+    const mongoose = require('mongoose');
+    // Guard against invalid or special sentinel IDs (e.g. "class") to avoid
+    // Mongoose CastError when querying QuizAttempt.student, which is an ObjectId.
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      console.warn(`Skipping topic mastery computation for invalid userId: ${userId}`);
+      return {};
+    }
 
-  for (const a of attempts) {
-    const topic = a?.quiz?.topic;
-    if (!topic) continue;
-    const score = typeof a.score === 'number' ? a.score : 0;
-    const prev = byTopic.get(topic) || { sum: 0, count: 0 };
-    prev.sum += score;
-    prev.count += 1;
-    byTopic.set(topic, prev);
+    const attempts = await QuizAttempt.find({ student: userId }).populate('quiz', 'topic');
+    const byTopic = new Map(); // topic -> {sum,count}
+
+    for (const a of attempts) {
+      const topic = a?.quiz?.topic;
+      if (!topic) continue;
+      const score = typeof a.score === 'number' ? a.score : 0;
+      const prev = byTopic.get(topic) || { sum: 0, count: 0 };
+      prev.sum += score;
+      prev.count += 1;
+      byTopic.set(topic, prev);
+    }
+
+    const mastery = {};
+    for (const [topic, { sum, count }] of byTopic.entries()) {
+      mastery[topic] = Math.max(0, Math.min(1, (sum / Math.max(1, count)) / 100));
+    }
+
+    return mastery;
+  } catch (error) {
+    console.error(`Error computing topic mastery for user ${userId}:`, error);
+    return {}; // fallback to empty map on error
   }
-
-  const mastery = {};
-  for (const [topic, { sum, count }] of byTopic.entries()) {
-    mastery[topic] = Math.max(0, Math.min(1, (sum / Math.max(1, count)) / 100));
-  }
-
-  return mastery;
 }
 
 /**
@@ -104,6 +139,15 @@ exports.predictRisk = async (req, res) => {
   try {
     const { userId } = req.params;
     const { targetConceptId } = req.query;
+
+    if (userId === 'class' || userId === 'entire-class') {
+      return res.status(400).json({ message: 'Individual concept risk prediction not available for class view' });
+    }
+
+    const mongoose = require('mongoose');
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid student ID provided' });
+    }
 
     if (!assertCanAccessUser(req, userId)) {
       return res.status(403).json({ message: 'Access denied' });
@@ -165,30 +209,78 @@ exports.predictRisk = async (req, res) => {
 };
 
 /**
- * Get risk analysis for all concepts
+ * Get risk analysis for all concepts (individual or class-wide)
  */
 exports.getRiskAnalysis = async (req, res) => {
   try {
     const { userId } = req.params;
-
-    if (!assertCanAccessUser(req, userId)) {
-      return res.status(403).json({ message: 'Access denied' });
+    const isClassView = userId === 'class' || userId === 'entire-class';
+    
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const concepts = await Concept.find({ status: 'approved', isActive: true });
+    // Authorization check
+    if (isClassView) {
+      if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied: Class view requires teacher or admin role' });
+      }
+    } else {
+      const mongoose = require('mongoose');
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+         return res.status(400).json({ message: 'Invalid student ID format' });
+      }
+      if (!assertCanAccessUser(req, userId)) {
+        return res.status(403).json({ message: 'Access denied: You cannot view this user\'s risk analysis' });
+      }
+    }
+
+    // Consider all concepts when computing risk, not only "approved",
+    // so that teacher-created content immediately participates in the graph.
+    const concepts = await Concept.find({});
+    if (!concepts || concepts.length === 0) {
+      return res.json({
+        studentId: userId,
+        isClassView,
+        totalConcepts: 0,
+        riskAnalysis: [],
+        highRiskConcepts: 0,
+        message: 'No active concepts found in the curriculum'
+      });
+    }
     const graph = await buildGraphObject();
-    const masteryMap = await computeTopicMasteryMap(userId);
+    
+    let masteryMap = {};
+    if (isClassView) {
+      const teacherId = req.user._id || req.user.id;
+      const query = req.user.role === 'teacher' ? { assignedTeacher: teacherId, role: 'student' } : { role: 'student' };
+      let students = await User.find(query).select('_id');
+      
+      // Fallback: if no students assigned to teacher, use all students for development visibility
+      if (students.length === 0 && req.user.role === 'teacher') {
+        students = await User.find({ role: 'student' }).select('_id');
+      }
+
+      const studentIds = students.map(s => s._id).filter(id => id && id.toString() !== 'class');
+      
+      if (studentIds.length > 0) {
+        masteryMap = await computeClassTopicMasteryMap(studentIds);
+      }
+    } else {
+      masteryMap = await computeTopicMasteryMap(userId);
+    }
+
     const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
 
     const riskAnalysis = concepts
       .map((concept) => {
         const conceptId = concept._id.toString();
-        const incoming = graph.edges.filter((e) => e.target === conceptId);
+        const incoming = (graph.edges || []).filter((e) => e.target === conceptId);
         const risks = incoming
           .map((dep) => {
             const source = nodeById.get(dep.source);
             if (!source) return null;
-            const mastery = masteryMap[source.topic] ?? 0.5;
+            const mastery = (masteryMap && masteryMap[source.topic]) ?? 0.5;
             const weakness = 1 - mastery;
             const depRisk = dep.riskScore ?? 0.6;
             const score = Math.max(0, Math.min(1, dep.weight * weakness * depRisk));
@@ -210,14 +302,62 @@ exports.getRiskAnalysis = async (req, res) => {
 
     res.json({
       studentId: userId,
+      isClassView,
       totalConcepts: concepts.length,
       riskAnalysis: riskAnalysis,
       highRiskConcepts: riskAnalysis.filter(r => r.riskLevel === 'high').length
     });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to get risk analysis', error: err.message });
+    // Gracefully handle CastError on QuizAttempt.student (e.g. if a sentinel
+    // value like "class" accidentally flows into a student filter somewhere).
+    if (err?.name === 'CastError' && err?.path === 'student') {
+      console.warn('CastError on QuizAttempt.student in getRiskAnalysis, returning empty analysis.');
+      return res.json({
+        studentId: req.params.userId,
+        isClassView: req.params.userId === 'class' || req.params.userId === 'entire-class',
+        totalConcepts: 0,
+        riskAnalysis: [],
+        highRiskConcepts: 0,
+        message: 'No risk data available yet for this selection.'
+      });
+    }
+
+    console.error('Error in getRiskAnalysis:', err);
+    res.status(500).json({ 
+      message: 'Failed to get risk analysis', 
+      error: err.message,
+      stack: err.stack
+    });
   }
 };
+
+async function computeClassTopicMasteryMap(studentIds) {
+  try {
+    if (!studentIds || studentIds.length === 0) return {};
+    const attempts = await QuizAttempt.find({ student: { $in: studentIds } }).populate('quiz', 'topic');
+    const byTopic = new Map(); // topic -> {sum,count}
+
+    for (const a of attempts) {
+      const topic = a?.quiz?.topic;
+      if (!topic) continue;
+      const score = typeof a.score === 'number' ? a.score : 0;
+      const prev = byTopic.get(topic) || { sum: 0, count: 0 };
+      prev.sum += score;
+      prev.count += 1;
+      byTopic.set(topic, prev);
+    }
+
+    const mastery = {};
+    for (const [topic, { sum, count }] of byTopic.entries()) {
+      mastery[topic] = Math.max(0, Math.min(1, (sum / Math.max(1, count)) / 100));
+    }
+
+    return mastery;
+  } catch (error) {
+    console.error('Error computing class topic mastery:', error);
+    return {}; // fallback
+  }
+}
 
 /**
  * Generate recommendations based on risk analysis

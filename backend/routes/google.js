@@ -40,7 +40,18 @@ router.post("/google-login", async (req, res) => {
     // Check if user exists, else create one
     let user = await User.findOne({ email });
     if (!user) {
-      user = new User({ name, email, password: "", role: "student" });
+      user = new User({ 
+        name, 
+        email, 
+        password: "", 
+        role: "student",
+        subscription: {
+          plan: "free",
+          status: "active",
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days trial
+        }
+      });
       await user.save();
       console.log(`🆕 New user created: ${email}`);
     }

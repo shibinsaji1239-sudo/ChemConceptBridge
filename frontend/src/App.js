@@ -21,6 +21,7 @@ import ExperimentEditorPage from './pages/ExperimentEditorPage';
 import VideosPage from './pages/VideosPage';
 import QuizStatsPage from './pages/QuizStatsPage';
 import StudentProgressPage from './pages/StudentProgressPage';
+import CalculatorPage from './pages/CalculatorPage';
 
 // Components
 import Dashboard from './components/Dashboard/Dashboard';
@@ -151,6 +152,7 @@ function App() {
           <Route path="/experiments/:id" element={<ProtectedRoute element={<LabRunPage />} allowedRole="any" />} />
           <Route path="/videos" element={<ProtectedRoute element={<VideosPage />} allowedRole="any" />} />
           <Route path="/experiments/:id/attempts" element={<ProtectedRoute element={<TeacherAttemptsPage />} allowedRole={['teacher','admin']} />} />
+          <Route path="/calculator" element={<ProtectedRoute element={<CalculatorPage />} allowedRole="any" />} />
 
           {/* Admin experiment management */}
           <Route path="/admin/experiments" element={<ProtectedRoute element={<AdminExperimentsPage />} allowedRole={["admin"]} />} />

@@ -24,6 +24,16 @@ async function main() {
   // Seed Concepts
   const concepts = [
     {
+      title: 'Periodic Table Basics',
+      description: 'Introduction to periodic table structure.',
+      topic: 'Periodic Table',
+      difficulty: 'Beginner',
+      estimatedTime: 15,
+      createdBy: teacher._id,
+      status: 'approved',
+      tags: ['elements']
+    },
+    {
       title: 'Acids & Bases Basics',
       description: 'Introduction to acids, bases, pH, and indicators.',
       topic: 'Acids & Bases',
@@ -43,7 +53,7 @@ async function main() {
     {
       title: 'Periodic Table Trends',
       description: 'Atomic radius, ionization energy, and electronegativity trends.',
-      topic: 'Periodic Table',
+      topic: 'Periodic Table Trends',
       difficulty: 'Beginner',
       estimatedTime: 25,
       content: {
@@ -57,10 +67,17 @@ async function main() {
   ];
 
   // Upsert by title+topic
+  const conceptMap = {};
   for (const c of concepts) {
-    await Concept.findOneAndUpdate({ title: c.title, topic: c.topic }, c, { upsert: true, new: true, setDefaultsOnInsert: true });
+    const doc = await Concept.findOneAndUpdate({ title: c.title, topic: c.topic }, c, { upsert: true, new: true, setDefaultsOnInsert: true });
+    conceptMap[c.title] = doc._id;
   }
-  console.log(`✅ Seeded ${concepts.length} concepts`);
+  
+  // Link concepts (prerequisites)
+  await Concept.findOneAndUpdate({ title: 'Periodic Table Trends' }, { $addToSet: { prerequisites: conceptMap['Periodic Table Basics'] } });
+  await Concept.findOneAndUpdate({ title: 'Acids & Bases Basics' }, { $addToSet: { prerequisites: conceptMap['Periodic Table Basics'] } });
+  
+  console.log(`✅ Seeded ${concepts.length} concepts and linked dependencies`);
 
   // Seed Quizzes
   const quizzes = [

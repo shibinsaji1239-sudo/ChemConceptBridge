@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/authMiddleware');
 const Exam = require('../models/Exam');
 const ExamAttempt = require('../models/ExamAttempt');
+const User = require('../models/User');
 
 const canManage = (req) => ['teacher', 'admin'].includes(req.user.role);
 
@@ -86,10 +87,37 @@ router.post('/', auth, async (req, res) => {
 // List exams
 router.get('/', auth, async (req, res) => {
   try {
-    const query = { isActive: true };
-    if (canManage(req)) query.createdBy = req.user.id; // list own exams by default
+    let query = { isActive: true };
+    if (canManage(req)) {
+      query.createdBy = req.user.id; 
+    } else {
+      // Student view: only show exams assigned to them
+      query.assignedStudents = req.user.id;
+    }
     const exams = await Exam.find(query).sort({ createdAt: -1 });
     res.json(exams);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update exam (Schedule/Meta)
+router.patch('/:id', auth, async (req, res) => {
+  try {
+    if (!canManage(req)) return res.status(403).json({ message: 'Access denied' });
+    const exam = await Exam.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(exam);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete exam
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    if (!canManage(req)) return res.status(403).json({ message: 'Access denied' });
+    await Exam.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Exam deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -205,6 +233,50 @@ router.get('/:id/analytics', auth, async (req, res) => {
     const avgScore = attempts.reduce((s, a) => s + (a.totalScore || 0), 0) / Math.max(1, attempts.length);
     const integrityAvg = attempts.reduce((s, a) => s + (100 - (a.integrity?.suspiciousActivityScore || 0)), 0) / Math.max(1, attempts.length);
     res.json({ totalAttempts: attempts.length, averageScore: avgScore, averageIntegrity: Math.round(integrityAvg), attempts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Assign exam to all students (Teacher only - NOT admin)
+router.post('/assign-all/:id', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'teacher') {
+      return res.status(403).json({ message: 'Only teachers can assign exams to students' });
+    }
+    
+    const exam = await Exam.findById(req.params.id);
+    if (!exam) return res.status(404).json({ message: 'Exam not found' });
+
+    // Find all users with role 'student'
+    const students = await User.find({ role: 'student' });
+    const studentIds = students.map(s => s._id);
+
+    if (studentIds.length === 0) {
+      return res.status(404).json({ message: 'No students found to assign' });
+    }
+
+    // Update assignedStudents array, ensuring uniqueness
+    const currentAssigned = exam.assignedStudents || [];
+    const currentIds = new Set(currentAssigned.map(id => id.toString()));
+    
+    let addedCount = 0;
+    studentIds.forEach(id => {
+      if (!currentIds.has(id.toString())) {
+        exam.assignedStudents.push(id);
+        addedCount++;
+      }
+    });
+    
+    if (addedCount > 0) {
+      await exam.save();
+    }
+
+    res.json({ 
+      message: `Exam successfully assigned to all students.`, 
+      totalStudents: studentIds.length,
+      newlyAssigned: addedCount
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

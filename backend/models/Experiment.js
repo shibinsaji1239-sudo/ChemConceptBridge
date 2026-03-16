@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const experimentSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
+  classLevel: { type: Number },
   animation: String,
   apparatus: [String],
   steps: [String],

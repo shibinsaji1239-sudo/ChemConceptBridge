@@ -58,6 +58,7 @@ const revisionRoutes = require("./routes/revision");
 const chatRoutes = require("./routes/chat"); // ✅ Chat route added
 const cognitiveRoutes = require("./routes/cognitive"); // ✅ Cognitive Load Analyzer
 const conceptDependencyRoutes = require("./routes/conceptDependency"); // ✅ Concept Dependency Risk Analyzer
+const conceptGraphRoutes = require("./routes/conceptGraph"); // ✅ Smart Concept Graph
 const examRoutes = require("./routes/exams");
 
 // ====================
@@ -66,6 +67,7 @@ const examRoutes = require("./routes/exams");
 app.use("/api/ml", mlRoutes); // ✅ ML Models (KNN, SVM, etc.)
 app.use("/api/cognitive", cognitiveRoutes); // ✅ Cognitive Metrics
 app.use("/api/concept-dependency", conceptDependencyRoutes); // ✅ Concept Dependency Risk Analyzer
+app.use("/api/concept-graph", conceptGraphRoutes); // ✅ Smart Concept Graph
 app.use("/api/auth", authRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/concept", conceptRoutes);

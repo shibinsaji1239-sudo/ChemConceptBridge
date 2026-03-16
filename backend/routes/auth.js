@@ -27,7 +27,18 @@ router.post("/register", async (req, res) => {
         if (userExists) return res.status(400).json({ message: "Email already exists" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ name, email, password: hashedPassword, role: "student" });
+        const newUser = new User({ 
+            name, 
+            email, 
+            password: hashedPassword, 
+            role: "student",
+            subscription: {
+                plan: "free",
+                status: "active",
+                startDate: new Date(),
+                endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days trial
+            }
+        });
         await newUser.save();
 
         res.status(201).json({ message: "Registered successfully" });

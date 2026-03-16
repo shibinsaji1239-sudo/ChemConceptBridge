@@ -29,6 +29,9 @@ const ExamManager = ({ role = 'teacher' }) => {
     })();
   }, []);
 
+  const [schedulingId, setSchedulingId] = useState(null);
+  const [scheduleForm, setScheduleForm] = useState({ startTime: '', endTime: '' });
+
   const updateQuestion = (idx, patch) => {
     setForm(prev => ({ ...prev, questions: prev.questions.map((q, i) => i === idx ? { ...q, ...patch } : q) }));
   };
@@ -46,6 +49,53 @@ const ExamManager = ({ role = 'teacher' }) => {
       setExams([data, ...exams]);
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || 'Failed to create exam');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const assignToAll = async (examId) => {
+    try {
+      setLoading(true);
+      setError('');
+      const { data } = await api.post(`/exams/assign-all/${examId}`);
+      alert(data.message);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to assign exam');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startScheduling = (ex) => {
+    setSchedulingId(ex._id);
+    setScheduleForm({
+      startTime: ex.schedule?.startTime?.slice(0, 16) || '',
+      endTime: ex.schedule?.endTime?.slice(0, 16) || ''
+    });
+  };
+
+  const updateSchedule = async (id) => {
+    try {
+      setLoading(true);
+      await api.patch(`/exams/${id}`, { schedule: scheduleForm });
+      setExams(prev => prev.map(ex => ex._id === id ? { ...ex, schedule: scheduleForm } : ex));
+      setSchedulingId(null);
+    } catch (err) {
+      alert('Failed to update schedule');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteExam = async (id) => {
+    if (!window.confirm('Delete this exam?')) return;
+    try {
+      setLoading(true);
+      await api.delete(`/exams/${id}`);
+      setExams(prev => prev.filter(ex => ex._id !== id));
+    } catch (err) {
+      alert('Failed to delete exam');
     } finally {
       setLoading(false);
     }
@@ -126,17 +176,56 @@ const ExamManager = ({ role = 'teacher' }) => {
           <button type="submit" disabled={loading}>{loading ? 'Creating...' : 'Create Exam'}</button>
         </form>
 
-        <div>
-          <h4>Your Exams</h4>
+        <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+          <h4>Your Exams ({exams.length})</h4>
           {loading && <div>Loading...</div>}
           {(exams || []).map(ex => (
-            <div key={ex._id} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 8, marginBottom: 8 }}>
+            <div key={ex._id} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, marginBottom: 8, position: 'relative' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <strong>{ex.title}</strong>
+                <strong style={{ fontSize: '15px' }}>{ex.title}</strong>
                 <span>{ex.durationMinutes} min • {ex.totalMarks} marks</span>
               </div>
-              <div style={{ color: '#6b7280' }}>{ex.topic}</div>
-              <div style={{ fontSize: 12 }}>Scheduled: {ex.schedule?.startTime ? new Date(ex.schedule.startTime).toLocaleString() : '—'} → {ex.schedule?.endTime ? new Date(ex.schedule.endTime).toLocaleString() : '—'}</div>
+              <div style={{ color: '#6b7280', margin: '4px 0', fontSize: '13px' }}>{ex.topic}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>
+                Scheduled: {ex.schedule?.startTime ? new Date(ex.schedule.startTime).toLocaleString() : '—'} 
+                {ex.schedule?.endTime && ` → ${new Date(ex.schedule.endTime).toLocaleString()}`}
+              </div>
+
+              {schedulingId === ex._id ? (
+                <div style={{ marginTop: 10, background: '#f8fafc', padding: 8, borderRadius: 4 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 6 }}>
+                    <input type="datetime-local" value={scheduleForm.startTime} onChange={e => setScheduleForm({ ...scheduleForm, startTime: e.target.value })} />
+                    <input type="datetime-local" value={scheduleForm.endTime} onChange={e => setScheduleForm({ ...scheduleForm, endTime: e.target.value })} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button className="btn btn-sm btn-primary" onClick={() => updateSchedule(ex._id)}>Save</button>
+                    <button className="btn btn-sm" onClick={() => setSchedulingId(null)}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                  {role === 'teacher' && (
+                    <>
+                      <button 
+                        onClick={() => startScheduling(ex)}
+                        className="btn btn-sm btn-info"
+                        style={{ padding: '4px 8px', fontSize: '12px' }}
+                      >
+                        📅 Schedule
+                      </button>
+                      <button 
+                        onClick={() => assignToAll(ex._id)} 
+                        disabled={loading}
+                        className="btn btn-sm btn-success"
+                        style={{ padding: '4px 8px', fontSize: '12px' }}
+                      >
+                        Assign All
+                      </button>
+                    </>
+                  )}
+                  <button onClick={() => deleteExam(ex._id)} className="btn btn-sm btn-danger" style={{ padding: '4px 8px', fontSize: '12px' }}>Delete</button>
+                </div>
+              )}
             </div>
           ))}
         </div>

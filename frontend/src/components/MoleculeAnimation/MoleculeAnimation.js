@@ -20,7 +20,16 @@ const MOLECULES = [
       { from: 0, to: 2 }
     ],
     description: 'A polar molecule with bent geometry. Essential for life.',
-    properties: ['Polar', 'Bent geometry', 'Hydrogen bonding']
+    properties: ['Polar', 'Bent geometry', 'Hydrogen bonding'],
+    formation: [
+      { step: 1, text: 'Oxygen atom has 6 valence electrons and needs 2 more.' },
+      { step: 2, text: 'Two Hydrogen atoms each have 1 electron.' },
+      { step: 3, text: 'Oxygen shares one electron with each Hydrogen, forming two covalent bonds.' }
+    ],
+    basicConcepts: [
+      { term: 'Polarity', explanation: 'Oxygen pulls electrons more strongly than Hydrogen, creating a slight charge.' },
+      { term: 'Covalent Bond', explanation: 'A bond formed when two atoms share electrons.' }
+    ]
   },
   {
     name: 'Carbon Dioxide',
@@ -36,7 +45,16 @@ const MOLECULES = [
       { from: 0, to: 2, double: true }
     ],
     description: 'Linear molecule, greenhouse gas, product of combustion.',
-    properties: ['Linear geometry', 'Non-polar', 'Greenhouse gas']
+    properties: ['Linear geometry', 'Non-polar', 'Greenhouse gas'],
+    formation: [
+      { step: 1, text: 'Carbon needs 4 more electrons to be stable.' },
+      { step: 2, text: 'Each Oxygen needs 2 more electrons.' },
+      { step: 3, text: 'Carbon forms TWO double bonds, sharing 4 electrons with each Oxygen.' }
+    ],
+    basicConcepts: [
+      { term: 'Double Bond', explanation: 'When atoms share four electrons instead of two.' },
+      { term: 'Linear Geometry', explanation: 'The atoms are arranged in a straight line.' }
+    ]
   },
   {
     name: 'Methane',
@@ -56,7 +74,16 @@ const MOLECULES = [
       { from: 0, to: 4 }
     ],
     description: 'Tetrahedral geometry, simplest alkane, natural gas component.',
-    properties: ['Tetrahedral', 'Non-polar', 'Alkane']
+    properties: ['Tetrahedral', 'Non-polar', 'Alkane'],
+    formation: [
+      { step: 1, text: 'Carbon has 4 valence electrons.' },
+      { step: 2, text: 'Four Hydrogen atoms each provide 1 electron.' },
+      { step: 3, text: 'Carbon shares its 4 electrons with 4 Hydogens to form a stable octet.' }
+    ],
+    basicConcepts: [
+      { term: 'Tetrahedron', explanation: 'A 3D shape like a pyramid with a triangular base.' },
+      { term: 'Valence Electrons', explanation: 'The electrons in the outermost shell of an atom.' }
+    ]
   },
   {
     name: 'Ammonia',
@@ -74,7 +101,16 @@ const MOLECULES = [
       { from: 0, to: 3 }
     ],
     description: 'Trigonal pyramidal geometry, weak base, important in fertilizers.',
-    properties: ['Trigonal pyramidal', 'Polar', 'Weak base']
+    properties: ['Trigonal pyramidal', 'Polar', 'Weak base'],
+    formation: [
+      { step: 1, text: 'Nitrogen has 5 valence electrons.' },
+      { step: 2, text: 'Three Hydrogen atoms share 1 electron each with Nitrogen.' },
+      { step: 3, text: 'One pair of electrons is left alone (Lone Pair), pushing the Hydrogens down.' }
+    ],
+    basicConcepts: [
+      { term: 'Lone Pair', explanation: 'A pair of valence electrons that are NOT shared with another atom.' },
+      { term: 'Trigonal Pyramidal', explanation: 'A pyramid shape with a triangular base.' }
+    ]
   },
   {
     name: 'Ethanol',
@@ -102,7 +138,15 @@ const MOLECULES = [
       { from: 2, to: 8 }
     ],
     description: 'Alcohol with hydroxyl group, used in beverages and fuel.',
-    properties: ['Alcohol', 'Polar', 'Hydroxyl group']
+    properties: ['Alcohol', 'Polar', 'Hydroxyl group'],
+    formation: [
+      { step: 1, text: 'Two carbons bond together.' },
+      { step: 2, text: 'One carbon bonds to 3 hydrogens.' },
+      { step: 3, text: 'The other carbon bonds to 2 hydrogens and an Oxygen (with its own Hydrogen).' }
+    ],
+    basicConcepts: [
+      { term: 'Hydroxyl Group', explanation: 'The -OH group that makes a molecule an alcohol.' }
+    ]
   },
   {
     name: 'Benzene',
@@ -137,7 +181,16 @@ const MOLECULES = [
       { from: 5, to: 11 }
     ],
     description: 'Aromatic hydrocarbon with a ring structure, found in many organic compounds.',
-    properties: ['Aromatic', 'Planar', 'Resonance structure']
+    properties: ['Aromatic', 'Planar', 'Resonance structure'],
+    formation: [
+      { step: 1, text: 'Six Carbon atoms form a perfect hexagonal ring.' },
+      { step: 2, text: 'Each Carbon shares electrons with two neighbors and one Hydrogen.' },
+      { step: 3, text: 'Special "Resonance" means electrons flow freely around the ring.' }
+    ],
+    basicConcepts: [
+      { term: 'Aromatic Ring', explanation: 'A stable circular arrangement of atoms with shared electrons.' },
+      { term: 'Planar', explanation: 'All atoms lie in the same flat plane (2D).' }
+    ]
   },
   {
     name: 'Hydrogen',
@@ -151,7 +204,16 @@ const MOLECULES = [
       { from: 0, to: 1 }
     ],
     description: 'Diatomic gas, simplest molecule, most abundant element in universe.',
-    properties: ['Diatomic', 'Non-polar', 'Combustible']
+    properties: ['Diatomic', 'Non-polar', 'Combustible'],
+    formation: [
+      { step: 1, text: 'Each Hydrogen atom has 1 single electron.' },
+      { step: 2, text: 'Two Hydrogen atoms move close together.' },
+      { step: 3, text: 'They share their electrons to form a single covalent bond.' }
+    ],
+    basicConcepts: [
+      { term: 'Diatomic', explanation: 'A molecule consisting of two atoms of the same element.' },
+      { term: 'Single Bond', explanation: 'A bond where two atoms share ONE pair of electrons.' }
+    ]
   },
   {
     name: 'Oxygen',
@@ -165,7 +227,15 @@ const MOLECULES = [
       { from: 0, to: 1, double: true }
     ],
     description: 'Diatomic gas essential for aerobic respiration.',
-    properties: ['Diatomic', 'Non-polar', 'Essential for life']
+    properties: ['Diatomic', 'Non-polar', 'Essential for life'],
+    formation: [
+      { step: 1, text: 'Oxygen atoms have 6 valence electrons each.' },
+      { step: 2, text: 'They need 2 more electrons to reach a stable state of 8.' },
+      { step: 3, text: 'They share TWO pairs of electrons, forming a double bond.' }
+    ],
+    basicConcepts: [
+      { term: 'Double Bond', explanation: 'A covalent bond involving four shared electrons.' }
+    ]
   },
   {
     name: 'Nitrogen',
@@ -179,7 +249,15 @@ const MOLECULES = [
       { from: 0, to: 1, triple: true }
     ],
     description: 'Diatomic gas, makes up 78% of atmosphere.',
-    properties: ['Diatomic', 'Non-polar', 'Triple bond']
+    properties: ['Diatomic', 'Non-polar', 'Triple bond'],
+    formation: [
+      { step: 1, text: 'Nitrogen atoms have 5 valence electrons.' },
+      { step: 2, text: 'They need 3 more electrons for stability.' },
+      { step: 3, text: 'They share THREE pairs of electrons, creating an extremely strong triple bond.' }
+    ],
+    basicConcepts: [
+      { term: 'Triple Bond', explanation: 'The strongest type of covalent bond, sharing six electrons.' }
+    ]
   },
   {
     name: 'Chlorine',
@@ -193,7 +271,15 @@ const MOLECULES = [
       { from: 0, to: 1 }
     ],
     description: 'Diatomic gas, used in water disinfection.',
-    properties: ['Diatomic', 'Non-polar', 'Toxic gas']
+    properties: ['Diatomic', 'Non-polar', 'Toxic gas'],
+    formation: [
+      { step: 1, text: 'Chlorine atoms have 7 valence electrons.' },
+      { step: 2, text: 'They only need 1 more electron to be complete.' },
+      { step: 3, text: 'They share one electron pair to form a single bond.' }
+    ],
+    basicConcepts: [
+      { term: 'Halogen', explanation: 'Elements in Group 17 that are highly reactive.' }
+    ]
   },
   {
     name: 'Hydrogen Chloride',
@@ -207,7 +293,16 @@ const MOLECULES = [
       { from: 0, to: 1 }
     ],
     description: 'Polar gas, strong acid when dissolved in water.',
-    properties: ['Polar', 'Acidic', 'Corrosive']
+    properties: ['Polar', 'Acidic', 'Corrosive'],
+    formation: [
+      { step: 1, text: 'Hydrogen has 1 electron, Chlorine has 7.' },
+      { step: 2, text: 'They share their electrons so both feel "full".' },
+      { step: 3, text: 'Chlorine pulls the electrons closer to itself because it is more electronegative.' }
+    ],
+    basicConcepts: [
+      { term: 'Electronegativity', explanation: 'The ability of an atom to attract shared electrons.' },
+      { term: 'Polar Molecule', explanation: 'A molecule where charge is unevenly distributed.' }
+    ]
   },
   {
     name: 'Acetylene',
@@ -225,7 +320,16 @@ const MOLECULES = [
       { from: 1, to: 3 }
     ],
     description: 'Unsaturated hydrocarbon with triple bond, used in welding.',
-    properties: ['Alkyne', 'Combustible', 'Triple bond']
+    properties: ['Alkyne', 'Combustible', 'Triple bond'],
+    formation: [
+      { step: 1, text: 'Two carbons form a strong triple bond.' },
+      { step: 2, text: 'The remaining electron from each carbon bonds with a hydrogen.' },
+      { step: 3, text: 'This creates a linear, highly energetic molecule.' }
+    ],
+    basicConcepts: [
+      { term: 'Alkyne', explanation: 'A hydrocarbon containing at least one triple bond.' },
+      { term: 'Unsaturated', explanation: 'A molecule that can still react to add more atoms.' }
+    ]
   },
   {
     name: 'Ethane',
@@ -251,7 +355,14 @@ const MOLECULES = [
       { from: 1, to: 7 }
     ],
     description: 'Simplest alkane with two carbon atoms.',
-    properties: ['Alkane', 'Combustible', 'Gas']
+    properties: ['Alkane', 'Combustible', 'Gas'],
+    formation: [
+      { step: 1, text: 'Two carbon atoms share one electron pair (single bond).' },
+      { step: 2, text: 'Each carbon then bonds with 3 hydrogens to complete its 4 bonds.' }
+    ],
+    basicConcepts: [
+      { term: 'Saturated Hydrocarbon', explanation: 'A molecule where all carbon-carbon bonds are single bonds.' }
+    ]
   },
   {
     name: 'Propane',
@@ -283,7 +394,15 @@ const MOLECULES = [
       { from: 2, to: 10 }
     ],
     description: 'Three-carbon alkane, used as fuel.',
-    properties: ['Alkane', 'Combustible', 'Fuel']
+    properties: ['Alkane', 'Combustible', 'Fuel'],
+    formation: [
+      { step: 1, text: 'Three carbons form a chain.' },
+      { step: 2, text: 'Carbon atoms at the ends bond to 3 hydrogens.' },
+      { step: 3, text: 'The middle carbon bonds to 2 hydrogens.' }
+    ],
+    basicConcepts: [
+      { term: 'Chain Structure', explanation: 'Atoms connected one after another in a line or sequence.' }
+    ]
   },
   {
     name: 'Formaldehyde',
@@ -301,7 +420,14 @@ const MOLECULES = [
       { from: 0, to: 3 }
     ],
     description: 'Simple aldehyde, used in manufacturing and preservation.',
-    properties: ['Aldehyde', 'Polar', 'Pungent odor']
+    properties: ['Aldehyde', 'Polar', 'Pungent odor'],
+    formation: [
+      { step: 1, text: 'Carbon forms a double bond with Oxygen.' },
+      { step: 2, text: 'Carbon then forms two single bonds with Hydrogen atoms.' }
+    ],
+    basicConcepts: [
+      { term: 'Carbonyl Group', explanation: 'A functional group composed of a carbon atom double-bonded to an oxygen atom.' }
+    ]
   },
   {
     name: 'Acetic Acid',
@@ -327,7 +453,15 @@ const MOLECULES = [
       { from: 0, to: 6 }
     ],
     description: 'Weak acid, main component of vinegar.',
-    properties: ['Carboxylic acid', 'Weak acid', 'Organic acid']
+    properties: ['Carboxylic acid', 'Weak acid', 'Organic acid'],
+    formation: [
+      { step: 1, text: 'Main Carbon-Carbon bond forms the backbone.' },
+      { step: 2, text: 'One carbon is part of a methyl group (CH3).' },
+      { step: 3, text: 'The other is a carboxyl group (COOH) with a double-bonded oxygen.' }
+    ],
+    basicConcepts: [
+      { term: 'Carboxyl Group', explanation: 'The -COOH group that makes biological and organic acids.' }
+    ]
   }
 ];
 
@@ -337,6 +471,7 @@ const MoleculeAnimation = () => {
   const [isRotating, setIsRotating] = useState(true);
   const [viewStyle, setViewStyle] = useState('stick');
   const [displayMolecule, setDisplayMolecule] = useState(MOLECULES[0]);
+  const [showBasics, setShowBasics] = useState(false);
   
   const containerRef = useRef(null);
   const rendererRef = useRef(null);
@@ -652,7 +787,7 @@ const MoleculeAnimation = () => {
     <div className="molecule-animation">
       <div className="ma-header">
         <h2>3D Molecule Viewer</h2>
-        <p>Explore interactive 3D molecular structures</p>
+        <p>Explore interactive 3D molecular structures and learn chemistry basics</p>
       </div>
       
       <div className="ma-content">
@@ -690,50 +825,89 @@ const MoleculeAnimation = () => {
 
         <div className="molecule-display">
           <div className="molecule-info">
-            <h3>{molecule.name}</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3>{molecule.name}</h3>
+              <button 
+                className={`basics-toggle-btn ${showBasics ? 'active' : ''}`}
+                onClick={() => setShowBasics(!showBasics)}
+              >
+                {showBasics ? 'Hide Basics' : 'Learn Basics'}
+              </button>
+            </div>
             <div className="formula">{molecule.formula}</div>
             <p className="description">{molecule.description}</p>
             
-            <div className="properties">
-              <h4>Properties:</h4>
-              <div className="property-tags">
-                {molecule.properties.map((prop, idx) => (
-                  <span key={idx} className="property-tag">{prop}</span>
-                ))}
+            {!showBasics ? (
+              <>
+                <div className="properties">
+                  <h4>Properties:</h4>
+                  <div className="property-tags">
+                    {molecule.properties.map((prop, idx) => (
+                      <span key={idx} className="property-tag">{prop}</span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="view-controls">
+                  <h4>View Controls:</h4>
+                  <div className="control-buttons">
+                    <button 
+                      className={`view-btn ${viewStyle === 'stick' ? 'active' : ''}`}
+                      onClick={() => setViewStyle('stick')}
+                    >
+                      Stick
+                    </button>
+                    <button 
+                      className={`view-btn ${viewStyle === 'sphere' ? 'active' : ''}`}
+                      onClick={() => setViewStyle('sphere')}
+                    >
+                      Space Fill
+                    </button>
+                    <button 
+                      className={`view-btn ${viewStyle === 'ball_stick' ? 'active' : ''}`}
+                      onClick={() => setViewStyle('ball_stick')}
+                    >
+                      Ball & Stick
+                    </button>
+                    <button 
+                      className={`view-btn ${isRotating ? 'active' : ''}`}
+                      onClick={toggleRotation}
+                    >
+                      {isRotating ? 'Stop Rotation' : 'Start Rotation'}
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="educational-guide">
+                <div className="formation-section">
+                  <h4>How it forms:</h4>
+                  <div className="formation-steps">
+                    {molecule.formation ? molecule.formation.map(step => (
+                      <div key={step.step} className="formation-step">
+                        <span className="step-number">{step.step}</span>
+                        <p>{step.text}</p>
+                      </div>
+                    )) : <p>Detailed formation steps coming soon!</p>}
+                  </div>
+                </div>
+                
+                <div className="concepts-section">
+                  <h4>Key Concepts:</h4>
+                  <div className="concept-cards">
+                    {molecule.basicConcepts ? molecule.basicConcepts.map((concept, idx) => (
+                      <div key={idx} className="concept-card">
+                        <h5>{concept.term}</h5>
+                        <p>{concept.explanation}</p>
+                      </div>
+                    )) : <p>Fundamental concepts for this molecule coming soon!</p>}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
             
-            <div className="view-controls">
-              <h4>View Controls:</h4>
-              <div className="control-buttons">
-                <button 
-                  className={`view-btn ${viewStyle === 'stick' ? 'active' : ''}`}
-                  onClick={() => setViewStyle('stick')}
-                >
-                  Stick
-                </button>
-                <button 
-                  className={`view-btn ${viewStyle === 'sphere' ? 'active' : ''}`}
-                  onClick={() => setViewStyle('sphere')}
-                >
-                  Space Fill
-                </button>
-                <button 
-                  className={`view-btn ${viewStyle === 'ball_stick' ? 'active' : ''}`}
-                  onClick={() => setViewStyle('ball_stick')}
-                >
-                  Ball & Stick
-                </button>
-                <button 
-                  className={`view-btn ${isRotating ? 'active' : ''}`}
-                  onClick={toggleRotation}
-                >
-                  {isRotating ? 'Stop Rotation' : 'Start Rotation'}
-                </button>
-              </div>
-              <div className="interaction-tip">
-                <p><strong>Tip:</strong> Click and drag to rotate. Scroll to zoom.</p>
-              </div>
+            <div className="interaction-tip">
+              <p><strong>Tip:</strong> Click and drag to rotate. Scroll to zoom.</p>
             </div>
           </div>
 

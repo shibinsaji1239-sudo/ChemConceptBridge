@@ -38,17 +38,17 @@ const SubscriptionModule = () => {
   const plans = [
     {
       id: 'free',
-      name: 'Basic Student',
+      name: '7-Day Free Trial',
       icon: <FaFlask />,
       price: '0',
       currency: '₹',
       features: [
-        { name: 'Access to basic concepts', included: true },
-        { name: 'Limited quizzes (5/day)', included: true },
+        { name: 'Access to 3 basic concepts', included: true },
+        { name: 'Limited quizzes (1/day)', included: true },
         { name: 'Basic progress tracking', included: true },
+        { name: '7-day trial period', included: true },
         { name: 'Advanced analytics', included: false },
         { name: 'Personalized learning path', included: false },
-        { name: 'Gamification features', included: false },
         { name: 'AR Multimedia access', included: false },
       ]
     },
@@ -70,11 +70,27 @@ const SubscriptionModule = () => {
       ]
     },
     {
+      id: 'teacher-trial',
+      name: 'Teacher 7-Day Trial',
+      icon: <FaFlask />,
+      price: '0',
+      currency: '₹',
+      features: [
+        { name: 'Access to classroom tools', included: true },
+        { name: 'Manage up to 5 students', included: true },
+        { name: 'Basic performance analytics', included: true },
+        { name: '7-day trial period', included: true },
+        { name: 'Advanced analytics', included: false },
+        { name: 'Bulk student import', included: false },
+      ]
+    },
+    {
       id: 'teacher',
       name: 'Teacher / Institution',
       icon: <FaChalkboardTeacher />,
       price: '2500',
       currency: '₹',
+      featured: true,
       features: [
         { name: 'All Pro Student features', included: true },
         { name: 'Classroom management tools', included: true },
@@ -88,9 +104,9 @@ const SubscriptionModule = () => {
   ];
 
   const handleSubscribe = async (planId) => {
-    if (planId === 'free') {
+    if (planId === 'free' || planId === 'teacher-trial') {
       // Free plan - just refresh the page or show message
-      alert('You are already on the Basic Student plan!');
+      alert(`You are already on the ${planId === 'free' ? 'Basic Student' : 'Teacher 7-Day Trial'} plan!`);
       return;
     }
 

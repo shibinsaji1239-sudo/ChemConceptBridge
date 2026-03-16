@@ -17,6 +17,19 @@ router.get('/profile', authMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
+    // Check if free trial has expired (7 days) for both students and teachers
+    const trialPlans = ['free', 'teacher-trial'];
+    if (trialPlans.includes(user.subscription.plan) && user.subscription.status !== 'expired') {
+      const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+      const registrationDate = user.createdAt;
+      const now = new Date();
+      if (now - registrationDate > sevenDaysInMs) {
+        user.subscription.status = 'expired';
+        await user.save();
+      }
+    }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -253,8 +266,19 @@ router.get('/students', authMiddleware, async (req, res) => {
     if (!['teacher', 'admin'].includes(req.user.role)) {
       return res.status(403).json({ message: 'Access denied' });
     }
-    const query = req.user.role === 'teacher' ? { assignedTeacher: req.user.id, role: 'student' } : { role: 'student' };
-    const students = await User.find(query).select('name email role assignedTeacher createdAt');
+    
+    // In some cases teacher ID might be on _id or id depending on the user document.
+    const teacherId = req.user._id || req.user.id;
+    const query = req.user.role === 'teacher' ? { assignedTeacher: teacherId, role: 'student' } : { role: 'student' };
+    
+    let students = await User.find(query).select('name email role assignedTeacher createdAt');
+    
+    // Fallback: If teacher role and no students assigned yet, let them see all students
+    // so they can use the dashboard during development/testing.
+    if (students.length === 0 && req.user.role === 'teacher') {
+      students = await User.find({ role: 'student' }).select('name email role assignedTeacher createdAt');
+    }
+    
     res.json(students);
   } catch (err) {
     res.status(500).json({ message: err.message });

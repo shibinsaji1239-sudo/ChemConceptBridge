@@ -2,20 +2,24 @@ import React, { useState } from 'react';
 import api from '../../apiClient';
 import './AIQuizGenerator.css';
 
-const AIQuizGenerator = ({ onQuizGenerated, userPerformance }) => {
+const AIQuizGenerator = ({ onQuizGenerated, userPerformance, role = 'student' }) => {
   const [topic, setTopic] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [mode, setMode] = useState('adaptive'); // 'adaptive' or 'manual'
+  const [mode, setMode] = useState(role === 'teacher' ? 'manual' : 'adaptive'); // Default to manual for teachers
   const [manualDifficulty, setManualDifficulty] = useState('Intermediate');
 
-  // Common topics - ideally this should come from an API or extracted from existing quizzes
+  const isTeacher = role === 'teacher';
+
+  // Common topics
   const topics = [
     'Atomic Structure',
+    'Chemical Kinetics',
+    'Electrochemistry',
+    'Solutions',
+    'Periodic Table',
     'Chemical Bonding',
     'Thermodynamics',
-    'Periodic Table',
-    'Stoichiometry',
     'Acids & Bases',
     'Organic Chemistry'
   ];
@@ -32,32 +36,31 @@ const AIQuizGenerator = ({ onQuizGenerated, userPerformance }) => {
     try {
       // Determine difficulty
       let difficulty = manualDifficulty;
-      if (mode === 'adaptive') {
-        // Use user performance to determine difficulty
-        // userPerformance is expected to be 'weak', 'average', or 'strong'
+      if (mode === 'adaptive' && !isTeacher) {
+        // Use user performance to determine difficulty for students
         if (userPerformance === 'weak') difficulty = 'Beginner';
         else if (userPerformance === 'strong') difficulty = 'Advanced';
         else difficulty = 'Intermediate';
       }
 
-      const endpoint = mode === 'adaptive' ? '/quiz/generate-ai' : '/quiz/generate';
-      
+      const endpoint = (mode === 'adaptive' || isTeacher) ? '/quiz/generate-ai' : '/quiz/generate';
+
       const { data } = await api.post(endpoint, {
         topic,
-        difficulty
+        difficulty,
+        count: isTeacher ? 10 : 5 // Teachers get a fuller quiz by default
       });
 
       if (onQuizGenerated) {
         onQuizGenerated(data);
       }
-      
-      // Clear error on success
+
       setError('');
     } catch (err) {
       console.error('Quiz generation error:', err);
-      const errorMessage = err.response?.data?.message || 
-                          err.response?.data?.error || 
-                          'Failed to generate quiz. Please ensure you are logged in and there are quizzes available for this topic.';
+      const errorMessage = err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Failed to generate quiz.';
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -67,8 +70,8 @@ const AIQuizGenerator = ({ onQuizGenerated, userPerformance }) => {
   return (
     <div className="ai-quiz-generator">
       <div className="ai-header">
-        <h3>🤖 AI Quiz Generator</h3>
-        <p>Create a custom quiz tailored to your learning level</p>
+        <h3>{isTeacher ? '🧪 Create AI Quiz for Students' : '🤖 AI Quiz Generator'}</h3>
+        <p>{isTeacher ? 'Instantly generate a high-quality quiz for your classes' : 'Create a custom quiz tailored to your learning level'}</p>
       </div>
 
       <div className="ai-controls">
@@ -82,27 +85,29 @@ const AIQuizGenerator = ({ onQuizGenerated, userPerformance }) => {
           </select>
         </div>
 
-        <div className="control-group">
-          <label>Mode</label>
-          <div className="mode-toggle">
-            <button 
-              className={mode === 'adaptive' ? 'active' : ''} 
-              onClick={() => setMode('adaptive')}
-            >
-              Adaptive (AI)
-            </button>
-            <button 
-              className={mode === 'manual' ? 'active' : ''} 
-              onClick={() => setMode('manual')}
-            >
-              Manual
-            </button>
-          </div>
-        </div>
-
-        {mode === 'manual' && (
+        {!isTeacher && (
           <div className="control-group">
-            <label>Difficulty</label>
+            <label>Mode</label>
+            <div className="mode-toggle">
+              <button
+                className={mode === 'adaptive' ? 'active' : ''}
+                onClick={() => setMode('adaptive')}
+              >
+                Adaptive (AI)
+              </button>
+              <button
+                className={mode === 'manual' ? 'active' : ''}
+                onClick={() => setMode('manual')}
+              >
+                Manual
+              </button>
+            </div>
+          </div>
+        )}
+
+        {(mode === 'manual' || isTeacher) && (
+          <div className="control-group">
+            <label>Target Difficulty</label>
             <select value={manualDifficulty} onChange={(e) => setManualDifficulty(e.target.value)}>
               <option value="Beginner">Beginner</option>
               <option value="Intermediate">Intermediate</option>
@@ -111,24 +116,25 @@ const AIQuizGenerator = ({ onQuizGenerated, userPerformance }) => {
           </div>
         )}
 
-        {mode === 'adaptive' && userPerformance && (
+        {mode === 'adaptive' && userPerformance && !isTeacher && (
           <div className="adaptive-info">
             <span className="info-icon">ℹ️</span>
             <span>Based on your performance, we recommend: <strong>{
-              userPerformance === 'weak' ? 'Beginner' : 
-              userPerformance === 'strong' ? 'Advanced' : 'Intermediate'
+              userPerformance === 'weak' ? 'Beginner' :
+                userPerformance === 'strong' ? 'Advanced' : 'Intermediate'
             }</strong></span>
           </div>
         )}
 
         {error && <div className="error-msg">{error}</div>}
 
-        <button 
-          className="generate-btn" 
-          onClick={handleGenerate} 
+        <button
+          className="generate-btn"
+          onClick={handleGenerate}
           disabled={loading}
+          style={{ background: isTeacher ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '' }}
         >
-          {loading ? 'Generating...' : 'Generate Quiz'}
+          {loading ? 'Generating...' : isTeacher ? 'Create Quiz ✨' : 'Generate Quiz'}
         </button>
       </div>
     </div>

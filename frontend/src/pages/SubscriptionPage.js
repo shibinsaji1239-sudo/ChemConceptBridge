@@ -25,20 +25,21 @@ const SubscriptionPage = ({ user, isStandalone = false }) => {
   // If isStandalone is true, we show navbar even if logged in (so they can navigate back)
   const showNavbar = !user || isStandalone;
 
-  const plans = [
+  const allPlans = [
     {
       id: 'free',
-      name: 'Basic Student',
+      name: '7-Day Free Trial',
       icon: <FaFlask />,
       price: '0',
       currency: '₹',
+      role: 'student',
       features: [
-        { name: 'Access to basic concepts', included: true },
-        { name: 'Limited quizzes (5/day)', included: true },
+        { name: 'Access to 3 basic concepts', included: true },
+        { name: 'Limited quizzes (1/day)', included: true },
         { name: 'Basic progress tracking', included: true },
+        { name: '7-day trial period', included: true },
         { name: 'Advanced analytics', included: false },
         { name: 'Personalized learning path', included: false },
-        { name: 'Gamification features', included: false },
         { name: 'AR Multimedia access', included: false },
       ]
     },
@@ -49,6 +50,7 @@ const SubscriptionPage = ({ user, isStandalone = false }) => {
       price: '830',
       currency: '₹',
       featured: true,
+      role: 'student',
       features: [
         { name: 'Unlimited access to all concepts', included: true },
         { name: 'Unlimited quizzes & practice', included: true },
@@ -60,11 +62,29 @@ const SubscriptionPage = ({ user, isStandalone = false }) => {
       ]
     },
     {
+      id: 'teacher-trial',
+      name: 'Teacher 7-Day Trial',
+      icon: <FaFlask />,
+      price: '0',
+      currency: '₹',
+      role: 'teacher',
+      features: [
+        { name: 'Access to classroom tools', included: true },
+        { name: 'Manage up to 5 students', included: true },
+        { name: 'Basic performance analytics', included: true },
+        { name: '7-day trial period', included: true },
+        { name: 'Advanced analytics', included: false },
+        { name: 'Bulk student import', included: false },
+      ]
+    },
+    {
       id: 'teacher',
       name: 'Teacher / Institution',
       icon: <FaChalkboardTeacher />,
       price: '2500',
       currency: '₹',
+      role: 'teacher',
+      featured: true,
       features: [
         { name: 'All Pro Student features', included: true },
         { name: 'Classroom management tools', included: true },
@@ -75,11 +95,15 @@ const SubscriptionPage = ({ user, isStandalone = false }) => {
         { name: 'AR Multimedia access', included: true },
       ]
     },
-
   ];
 
+  // Filter plans based on user role
+  const plans = user?.role === 'teacher' || user?.role === 'admin'
+    ? allPlans.filter(p => p.role === 'teacher')
+    : allPlans.filter(p => p.role === 'student');
+
   const handleSubscribe = async (planId) => {
-    if (planId === 'free') {
+    if (planId === 'free' || planId === 'teacher-trial') {
       if (user) {
         navigate('/dashboard');
       } else {

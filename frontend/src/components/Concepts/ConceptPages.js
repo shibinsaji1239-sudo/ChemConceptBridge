@@ -36,9 +36,10 @@ const getDifficultyColor = (difficulty) => {
 // Topic-specific content mapping
 const getTopicContent = (topic) => {
   const topicLower = (topic || '').toLowerCase();
-  
+
   const contentMap = {
     'acids & bases': {
+      image: 'https://images.unsplash.com/photo-1581093191175-e0bc33d8372d?q=80&w=400&auto=format&fit=crop',
       overview: 'Acids and bases are fundamental concepts in chemistry that help us understand chemical behavior in aqueous solutions. An acid is a substance that increases the concentration of hydrogen ions (H⁺) in aqueous solution, while a base increases the concentration of hydroxide ions (OH⁻).',
       keyPoints: [
         'Definitions of acids and bases (Arrhenius, Brønsted-Lowry, and Lewis models).',
@@ -55,6 +56,7 @@ const getTopicContent = (topic) => {
       diagram: 'Interactive molecular visualization of acid-base reactions'
     },
     'periodic table': {
+      image: 'https://images.unsplash.com/photo-1532187875605-183881409d20?q=80&w=400&auto=format&fit=crop',
       overview: 'The periodic table is a systematic arrangement of chemical elements organized by their atomic number, electron configuration, and recurring chemical properties. Elements are arranged in rows (periods) and columns (groups) that reveal periodic trends.',
       keyPoints: [
         'Organization by atomic number and electron configuration.',
@@ -71,6 +73,7 @@ const getTopicContent = (topic) => {
       diagram: 'Interactive periodic table with element properties'
     },
     'chemical bonding': {
+      image: 'https://images.unsplash.com/photo-1581093588401-fbb62a02f120?q=80&w=400&auto=format&fit=crop',
       overview: 'Chemical bonding is the force that holds atoms together in molecules and compounds. The three main types of chemical bonds are ionic, covalent, and metallic bonds, each with distinct properties and formation mechanisms.',
       keyPoints: [
         'Ionic bonds: transfer of electrons between metals and nonmetals.',
@@ -87,6 +90,7 @@ const getTopicContent = (topic) => {
       diagram: 'Interactive visualization of different bond types'
     },
     'thermodynamics': {
+      image: 'https://images.unsplash.com/photo-1534398079543-7ae6d016b86a?q=80&w=400&auto=format&fit=crop',
       overview: 'Thermodynamics is the branch of chemistry that deals with energy changes in chemical reactions and physical processes. It helps us understand whether reactions occur spontaneously and how energy is transferred.',
       keyPoints: [
         'First law: conservation of energy (ΔU = Q - W).',
@@ -103,6 +107,7 @@ const getTopicContent = (topic) => {
       diagram: 'Energy diagrams showing enthalpy and entropy changes'
     },
     'organic chemistry': {
+      image: 'https://images.unsplash.com/photo-1532187643603-ba119ca4109e?q=80&w=400&auto=format&fit=crop',
       overview: 'Organic chemistry is the study of carbon-containing compounds and their reactions. Carbon\'s ability to form four covalent bonds allows for an enormous variety of molecular structures and reactions.',
       keyPoints: [
         'Hydrocarbons: alkanes, alkenes, alkynes, and aromatic compounds.',
@@ -119,6 +124,7 @@ const getTopicContent = (topic) => {
       diagram: 'Interactive molecular structures of organic compounds'
     },
     'stoichiometry': {
+      image: 'https://images.unsplash.com/photo-1532187875605-183881409d20?q=80&w=400&auto=format&fit=crop',
       overview: 'Stoichiometry is the quantitative relationship between reactants and products in chemical reactions. It allows us to calculate the amounts of substances consumed and produced in chemical processes.',
       keyPoints: [
         'Balancing chemical equations.',
@@ -135,6 +141,7 @@ const getTopicContent = (topic) => {
       diagram: 'Balanced equation visualization with mole ratios'
     },
     'equilibrium': {
+      image: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=400&auto=format&fit=crop',
       overview: 'Chemical equilibrium occurs when the rates of forward and reverse reactions are equal, resulting in constant concentrations of reactants and products. The equilibrium constant (K) quantifies the position of equilibrium.',
       keyPoints: [
         'Dynamic equilibrium: reactions continue but concentrations remain constant.',
@@ -151,6 +158,7 @@ const getTopicContent = (topic) => {
       diagram: 'Equilibrium reaction visualization showing forward and reverse rates'
     },
     'redox reactions': {
+      image: 'https://images.unsplash.com/photo-1514373941175-0a141072bbc8?q=80&w=400&auto=format&fit=crop',
       overview: 'Redox (reduction-oxidation) reactions involve the transfer of electrons between species. Oxidation is the loss of electrons, while reduction is the gain of electrons. These reactions are fundamental to many chemical processes.',
       keyPoints: [
         'Oxidation numbers: tracking electron transfer.',
@@ -165,6 +173,91 @@ const getTopicContent = (topic) => {
         'Corrosion prevention: sacrificial anodes and protective coatings.'
       ],
       diagram: 'Electron transfer visualization in redox reactions'
+    },
+    'atomic structure': {
+      image: 'https://images.unsplash.com/photo-1581093196277-9f608109ca46?q=80&w=400&auto=format&fit=crop',
+      overview: 'Atomic structure refers to the constitution of an atom, comprising a nucleus of protons and neutrons, orbited by electrons. Understanding atomic structure is key to understanding chemical reactivity and bonding.',
+      keyPoints: [
+        'Subatomic particles: protons, neutrons, and electrons.',
+        'Atomic number, mass number, and isotopes.',
+        'Bohr model vs. Quantum mechanical model.',
+        'Electron configuration and orbital shapes.',
+        'Photons and energy levels (Excitation/Relaxation).'
+      ],
+      examples: [
+        'Hydrogen spectrum: discrete lines showing quantized energy levels.',
+        'Isotopes of Carbon: C-12, C-13, and the radioactive C-14.',
+        'Flame tests: different elements producing characteristic colors.'
+      ],
+      diagram: 'Orbital visualization and energy level transitions'
+    },
+    'chemical kinetics': {
+      image: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?q=80&w=400&auto=format&fit=crop',
+      overview: 'Chemical kinetics is the study of the rates of chemical reactions and the factors that affect them. It provides insight into the reaction mechanism—the step-by-step pathway from reactants to products.',
+      keyPoints: [
+        'Reaction rate laws and order of reaction.',
+        'Collision theory and activation energy.',
+        'Factors affecting rates: concentration, temperature, catalysts.',
+        'Integrated rate laws for zero, first, and second-order reactions.',
+        'Enzyme kinetics and biological catalysts.'
+      ],
+      examples: [
+        'Decomposition of hydrogen peroxide catalyzed by manganese dioxide.',
+        'Half-life of medications in the human body.',
+        'Food preservation through refrigeration (slowing down reaction rates).'
+      ],
+      diagram: 'Energy profile diagrams with and without catalysts'
+    },
+    'electrochemistry': {
+      image: 'https://images.unsplash.com/photo-1581093450021-4a7360e9a6b5?q=80&w=400&auto=format&fit=crop',
+      overview: 'Electrochemistry is the study of the relationship between electrical energy and chemical change. It encompasses both the generation of electricity from chemical reactions (batteries) and the use of electricity to drive chemical reactions (electrolysis).',
+      keyPoints: [
+        'Galvanic (voltaic) cells and spontaneous reactions.',
+        'Electrolytic cells and non-spontaneous reactions.',
+        'Standard reduction potentials and the Nernst equation.',
+        'Corrosion and its prevention.',
+        'Fuel cells and modern battery technology.'
+      ],
+      examples: [
+        'Lead-acid batteries used in vehicles.',
+        'Electroplating jewelry with gold or silver.',
+        'Production of aluminum through electrolysis of bauxite.'
+      ],
+      diagram: 'Animated galvanic cell with electron and ion flow'
+    },
+    'solutions': {
+      image: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=400&auto=format&fit=crop',
+      overview: 'Solutions are homogeneous mixtures of two or more substances. This topic explores how solutes dissolve in solvents and the resulting properties of the solution, including concentration and colligative properties.',
+      keyPoints: [
+        'Molarity, molality, and mole fraction.',
+        'Solubility rules and factors (temperature/pressure).',
+        'Raoult\'s law and vapor pressure lowering.',
+        'Colligative properties: boiling point elevation, freezing point depression.',
+        'Osmosis and osmotic pressure.'
+      ],
+      examples: [
+        'Salting roads in winter to lower the freezing point of water.',
+        'Intravenous (IV) fluids matched to blood osmotic pressure.',
+        'Antifreeze in car radiators for both winter and summer protection.'
+      ],
+      diagram: 'Molecular view of dissolution and osmosis'
+    },
+    'biomolecules': {
+      image: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?q=80&w=400&auto=format&fit=crop',
+      overview: 'Biomolecules are organic molecules that are present in living organisms. These include carbohydrates, proteins, lipids, and nucleic acids, which are essential for various biological processes.',
+      keyPoints: [
+        'Classification of carbohydrates and their functions.',
+        'Amino acids and protein structure hierarchy.',
+        'Lipids and cell membrane composition.',
+        'Structure and function of DNA and RNA.',
+        'Enzymes as biological catalysts.'
+      ],
+      examples: [
+        'Glucose as a primary source of energy.',
+        'Hemoglobin for oxygen transport in blood.',
+        'Phospholipids forming the lipid bilayer of cells.'
+      ],
+      diagram: 'Interactive visualization for Biochemistry'
     }
   };
 
@@ -182,6 +275,7 @@ const getTopicContent = (topic) => {
 
   // Default content
   return {
+    image: 'https://images.unsplash.com/photo-1532187875605-183881409d20?q=80&w=400&auto=format&fit=crop',
     overview: 'This concept covers important principles in chemistry. Explore the key points and examples to deepen your understanding.',
     keyPoints: [
       'Fundamental principles and definitions.',
@@ -321,6 +415,66 @@ const getDefaultConcepts = () => {
         keyPoints: getTopicContent('Redox Reactions').keyPoints,
         examples: getTopicContent('Redox Reactions').examples
       }
+    },
+    {
+      _id: 'default-atomic-structure',
+      title: 'Atomic Structure',
+      topic: 'Atomic Structure',
+      description: 'The constitution of atoms and subatomic particles.',
+      difficulty: 'Beginner',
+      estimatedTime: 35,
+      status: 'approved',
+      isActive: true,
+      content: {
+        overview: getTopicContent('Atomic Structure').overview,
+        keyPoints: getTopicContent('Atomic Structure').keyPoints,
+        examples: getTopicContent('Atomic Structure').examples
+      }
+    },
+    {
+      _id: 'default-kinetics',
+      title: 'Chemical Kinetics',
+      topic: 'Chemical Kinetics',
+      description: 'Study of reaction rates and mechanisms.',
+      difficulty: 'Intermediate',
+      estimatedTime: 50,
+      status: 'approved',
+      isActive: true,
+      content: {
+        overview: getTopicContent('Chemical Kinetics').overview,
+        keyPoints: getTopicContent('Chemical Kinetics').keyPoints,
+        examples: getTopicContent('Chemical Kinetics').examples
+      }
+    },
+    {
+      _id: 'default-electrochemistry',
+      title: 'Electrochemistry',
+      topic: 'Electrochemistry',
+      description: 'Electricity and chemical changes.',
+      difficulty: 'Advanced',
+      estimatedTime: 60,
+      status: 'approved',
+      isActive: true,
+      content: {
+        overview: getTopicContent('Electrochemistry').overview,
+        keyPoints: getTopicContent('Electrochemistry').keyPoints,
+        examples: getTopicContent('Electrochemistry').examples
+      }
+    },
+    {
+      _id: 'default-solutions',
+      title: 'Solutions & Solubility',
+      topic: 'Solutions',
+      description: 'Properties of homogeneous mixtures and solubility.',
+      difficulty: 'Intermediate',
+      estimatedTime: 40,
+      status: 'approved',
+      isActive: true,
+      content: {
+        overview: getTopicContent('Solutions').overview,
+        keyPoints: getTopicContent('Solutions').keyPoints,
+        examples: getTopicContent('Solutions').examples
+      }
     }
   ];
 };
@@ -360,11 +514,11 @@ const ConceptPages = ({ initialTopic }) => {
         setError('');
         const { data } = await api.get('/concept').catch(() => ({ data: [] }));
         let visible = (data || []).filter(c => c.status === 'approved' && c.isActive !== false);
-        
+
         // Always merge with default concepts to ensure we have content
         const defaults = getDefaultConcepts();
         const defaultMap = new Map(defaults.map(c => [c.topic.toLowerCase(), c]));
-        
+
         // Merge: use API concepts if they exist, otherwise use defaults
         const merged = visible.map(concept => {
           const defaultConcept = defaultMap.get((concept.topic || '').toLowerCase());
@@ -382,7 +536,7 @@ const ConceptPages = ({ initialTopic }) => {
           }
           return concept;
         });
-        
+
         // Add defaults that aren't in API results
         const existingTopics = new Set(merged.map(c => (c.topic || '').toLowerCase()));
         defaults.forEach(defaultConcept => {
@@ -390,10 +544,10 @@ const ConceptPages = ({ initialTopic }) => {
             merged.push(defaultConcept);
           }
         });
-        
+
         const finalConcepts = merged.length > 0 ? merged : defaults;
         setConcepts(finalConcepts);
-        
+
         console.log('Loaded concepts:', finalConcepts.length, finalConcepts.map(c => c.topic));
 
         if (finalConcepts.length) {
@@ -485,219 +639,232 @@ const ConceptPages = ({ initialTopic }) => {
     // Always render the new layout for all concepts
     return (
       <div className="concept-layout">
-          <div className="concept-main">
-            <button
-              className="back-btn"
-              type="button"
-              onClick={() => {
-                const event = new CustomEvent('navigate-to-tab', { detail: { tab: 'overview' } });
-                window.dispatchEvent(event);
-              }}
-            >
-              ← Back to Dashboard
-            </button>
+        <div className="concept-main">
+          <button
+            className="back-btn"
+            type="button"
+            onClick={() => {
+              const event = new CustomEvent('navigate-to-tab', { detail: { tab: 'overview' } });
+              window.dispatchEvent(event);
+            }}
+          >
+            ← Back to Dashboard
+          </button>
 
-            <div className="concept-header-card">
+          <div className="concept-header-card">
+            <div className="concept-header-left">
+              {getTopicContent(activeConcept.topic).image && (
+                <div className="concept-image-main">
+                  <img 
+                    src={getTopicContent(activeConcept.topic).image} 
+                    alt={activeConcept.topic}
+                    style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                  />
+                </div>
+              )}
               <div>
-                <div className="concept-title-main">{activeConcept.title}</div>
+                <div className="concept-title-main" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {activeConcept.title}
+                </div>
                 <div className="concept-subtitle-main">
                   {activeConcept.description || `Understanding the fundamental properties and behavior of ${activeConcept.topic || 'this concept'}.`}
                 </div>
               </div>
-              <div className="concept-meta-chips">
-                <span className="chip-level">{activeConcept.difficulty || 'Intermediate'}</span>
-                {activeConcept.estimatedTime && (
-                  <span className="chip-time">{activeConcept.estimatedTime} minutes</span>
-                )}
-              </div>
             </div>
-
-            <div className="concept-tabs">
-              <button
-                className={`concept-tab ${activeTab === 'overview' ? 'active' : ''}`}
-                onClick={() => setActiveTab('overview')}
-              >
-                Overview
-              </button>
-              <button
-                className={`concept-tab ${activeTab === 'key-points' ? 'active' : ''}`}
-                onClick={() => setActiveTab('key-points')}
-              >
-                Key Points
-              </button>
-              <button
-                className={`concept-tab ${activeTab === 'examples' ? 'active' : ''}`}
-                onClick={() => setActiveTab('examples')}
-              >
-                Examples
-              </button>
-            </div>
-
-            <div className="concept-body">
-              <div className="concept-body-main">
-                <div className="concept-text-block">
-                  {(() => {
-                    // Get content from database first, fallback to topic mapping
-                    const dbContent = activeConcept?.content;
-                    const topicContent = getTopicContent(activeConcept?.topic);
-                    
-                    if (activeTab === 'overview') {
-                      const overviewText = dbContent?.overview || topicContent.overview || activeConcept?.description;
-                      return <p>{overviewText}</p>;
-                    }
-                    
-                    if (activeTab === 'key-points') {
-                      const keyPoints = dbContent?.keyPoints || topicContent.keyPoints || [
-                        'Key concepts and principles',
-                        'Important relationships',
-                        'Applications and examples'
-                      ];
-                      return (
-                        <>
-                          <h4>Key Points</h4>
-                          <ul className="bullet-list">
-                            {keyPoints.map((point, idx) => (
-                              <li key={idx}>{point}</li>
-                            ))}
-                          </ul>
-                        </>
-                      );
-                    }
-                    
-                    if (activeTab === 'examples') {
-                      const examples = dbContent?.examples || topicContent.examples || [
-                        'Example applications',
-                        'Real-world uses',
-                        'Laboratory demonstrations'
-                      ];
-                      return (
-                        <>
-                          <h4>Examples</h4>
-                          <ul className="bullet-list">
-                            {examples.map((example, idx) => (
-                              <li key={idx}>{example}</li>
-                            ))}
-                          </ul>
-                        </>
-                      );
-                    }
-                    
-                    return null;
-                  })()}
-                </div>
-
-                <div className="interactive-card">
-                  <div className="interactive-header">Interactive Diagram</div>
-                  <div className="interactive-frame">
-                    <TopicDiagram topic={activeConcept?.topic} />
-                  </div>
-                </div>
-              </div>
-
-              <aside className="concept-sidebar-right">
-                <div className="sidebar-card">
-                  <div className="sidebar-title">Actions</div>
-                  <button
-                    className="primary-action"
-                    type="button"
-                    onClick={() => {
-                      const event = new CustomEvent('navigate-to-tab', { detail: { tab: 'quizzes', topic: activeConcept.topic } });
-                      window.dispatchEvent(event);
-                    }}
-                  >
-                    Take Quiz
-                  </button>
-                  <button 
-                    className="secondary-action" 
-                    type="button"
-                    onClick={async () => {
-                      if (!activeConcept?._id) return;
-                      try {
-                        const response = await api.get(`/reports/concept/${activeConcept._id}`, { responseType: 'blob' });
-                        const url = window.URL.createObjectURL(new Blob([response.data]));
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.setAttribute('download', `${activeConcept.title.replace(/\s+/g, '_')}_Study_Notes.pdf`);
-                        document.body.appendChild(link);
-                        link.click();
-                        link.parentNode.removeChild(link);
-                      } catch (err) {
-                        console.error('Download failed', err);
-                        alert('Failed to download PDF notes');
-                      }
-                    }}
-                  >
-                    Download PDF
-                  </button>
-                  <button 
-                    className="secondary-action" 
-                    type="button"
-                    onClick={() => {
-                      // Open concept map in a modal or new view
-                      const event = new CustomEvent('open-topic-concept-map', { 
-                        detail: { topic: activeConcept?.topic } 
-                      });
-                      window.dispatchEvent(event);
-                    }}
-                  >
-                    Open Concept Map
-                  </button>
-                </div>
-
-                <div className="sidebar-card">
-                  <div className="sidebar-title">Related Topics</div>
-                  <ul className="related-list">
-                    {(() => {
-                      // Get related topics from database or show common ones
-                      const related = activeConcept?.relatedConcepts || [];
-                      if (related.length > 0) {
-                        return related.map((concept, idx) => (
-                          <li key={idx}>{typeof concept === 'object' ? concept.title : concept}</li>
-                        ));
-                      }
-                      // Default related topics based on current topic
-                      const topicLower = (activeConcept?.topic || '').toLowerCase();
-                      const defaultRelated = [
-                        'Acids & Bases',
-                        'Periodic Table',
-                        'Chemical Bonding',
-                        'Thermodynamics',
-                        'Organic Chemistry'
-                      ].filter(t => t.toLowerCase() !== topicLower).slice(0, 3);
-                      return defaultRelated.map((topic, idx) => (
-                        <li key={idx}>{topic}</li>
-                      ));
-                    })()}
-                  </ul>
-                </div>
-
-                <div className="sidebar-card">
-                  <div className="sidebar-title">Your Progress</div>
-                  <div className="progress-row">
-                    <span>Completion</span>
-                    <span>{progress[activeConcept?.topic] || 75}%</span>
-                  </div>
-                  <div className="progress-track">
-                    <div className="progress-fill" style={{ width: `${progress[activeConcept?.topic] || 75}%` }} />
-                  </div>
-                  <ul className="progress-checklist">
-                    <li className="done">Notes Read</li>
-                    <li className={progress[activeConcept?.topic] >= 100 ? 'done' : 'pending'}>Quiz Completed</li>
-                    <li className="pending">Concept Map</li>
-                  </ul>
-                  <button
-                    className="secondary-action"
-                    type="button"
-                    onClick={() => handleMarkCompleted(activeConcept?.topic)}
-                  >
-                    Mark as Completed
-                  </button>
-                </div>
-              </aside>
+            <div className="concept-meta-chips">
+              <span className="chip-level">{activeConcept.difficulty || 'Intermediate'}</span>
+              {activeConcept.estimatedTime && (
+                <span className="chip-time">{activeConcept.estimatedTime} minutes</span>
+              )}
             </div>
           </div>
+
+          <div className="concept-tabs">
+            <button
+              className={`concept-tab ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              Overview
+            </button>
+            <button
+              className={`concept-tab ${activeTab === 'key-points' ? 'active' : ''}`}
+              onClick={() => setActiveTab('key-points')}
+            >
+              Key Points
+            </button>
+            <button
+              className={`concept-tab ${activeTab === 'examples' ? 'active' : ''}`}
+              onClick={() => setActiveTab('examples')}
+            >
+              Examples
+            </button>
+          </div>
+
+          <div className="concept-body">
+            <div className="concept-body-main">
+              <div className="concept-text-block">
+                {(() => {
+                  // Get content from database first, fallback to topic mapping
+                  const dbContent = activeConcept?.content;
+                  const topicContent = getTopicContent(activeConcept?.topic);
+
+                  if (activeTab === 'overview') {
+                    const overviewText = dbContent?.overview || topicContent.overview || activeConcept?.description;
+                    return <p>{overviewText}</p>;
+                  }
+
+                  if (activeTab === 'key-points') {
+                    const keyPoints = dbContent?.keyPoints || topicContent.keyPoints || [
+                      'Key concepts and principles',
+                      'Important relationships',
+                      'Applications and examples'
+                    ];
+                    return (
+                      <>
+                        <h4>Key Points</h4>
+                        <ul className="bullet-list">
+                          {keyPoints.map((point, idx) => (
+                            <li key={idx}>{point}</li>
+                          ))}
+                        </ul>
+                      </>
+                    );
+                  }
+
+                  if (activeTab === 'examples') {
+                    const examples = dbContent?.examples || topicContent.examples || [
+                      'Example applications',
+                      'Real-world uses',
+                      'Laboratory demonstrations'
+                    ];
+                    return (
+                      <>
+                        <h4>Examples</h4>
+                        <ul className="bullet-list">
+                          {examples.map((example, idx) => (
+                            <li key={idx}>{example}</li>
+                          ))}
+                        </ul>
+                      </>
+                    );
+                  }
+
+                  return null;
+                })()}
+              </div>
+
+              <div className="interactive-card">
+                <div className="interactive-header">Interactive Diagram</div>
+                <div className="interactive-frame">
+                  <TopicDiagram topic={activeConcept?.topic} />
+                </div>
+              </div>
+            </div>
+
+            <aside className="concept-sidebar-right">
+              <div className="sidebar-card">
+                <div className="sidebar-title">Actions</div>
+                <button
+                  className="primary-action"
+                  type="button"
+                  onClick={() => {
+                    const event = new CustomEvent('navigate-to-tab', { detail: { tab: 'quizzes', topic: activeConcept.topic } });
+                    window.dispatchEvent(event);
+                  }}
+                >
+                  Take Quiz
+                </button>
+                <button
+                  className="secondary-action"
+                  type="button"
+                  onClick={async () => {
+                    if (!activeConcept?._id) return;
+                    try {
+                      const response = await api.get(`/reports/concept/${activeConcept._id}`, { responseType: 'blob' });
+                      const url = window.URL.createObjectURL(new Blob([response.data]));
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.setAttribute('download', `${activeConcept.title.replace(/\s+/g, '_')}_Study_Notes.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.parentNode.removeChild(link);
+                    } catch (err) {
+                      console.error('Download failed', err);
+                      alert('Failed to download PDF notes');
+                    }
+                  }}
+                >
+                  Download PDF
+                </button>
+                <button
+                  className="secondary-action"
+                  type="button"
+                  onClick={() => {
+                    // Open concept map in a modal or new view
+                    const event = new CustomEvent('open-topic-concept-map', {
+                      detail: { topic: activeConcept?.topic }
+                    });
+                    window.dispatchEvent(event);
+                  }}
+                >
+                  Open Concept Map
+                </button>
+              </div>
+
+              <div className="sidebar-card">
+                <div className="sidebar-title">Related Topics</div>
+                <ul className="related-list">
+                  {(() => {
+                    // Get related topics from database or show common ones
+                    const related = activeConcept?.relatedConcepts || [];
+                    if (related.length > 0) {
+                      return related.map((concept, idx) => (
+                        <li key={idx}>{typeof concept === 'object' ? concept.title : concept}</li>
+                      ));
+                    }
+                    // Default related topics based on current topic
+                    const topicLower = (activeConcept?.topic || '').toLowerCase();
+                    const defaultRelated = [
+                      'Acids & Bases',
+                      'Periodic Table',
+                      'Chemical Bonding',
+                      'Thermodynamics',
+                      'Organic Chemistry'
+                    ].filter(t => t.toLowerCase() !== topicLower).slice(0, 3);
+                    return defaultRelated.map((topic, idx) => (
+                      <li key={idx}>{topic}</li>
+                    ));
+                  })()}
+                </ul>
+              </div>
+
+              <div className="sidebar-card">
+                <div className="sidebar-title">Your Progress</div>
+                <div className="progress-row">
+                  <span>Completion</span>
+                  <span>{progress[activeConcept?.topic] || 75}%</span>
+                </div>
+                <div className="progress-track">
+                  <div className="progress-fill" style={{ width: `${progress[activeConcept?.topic] || 75}%` }} />
+                </div>
+                <ul className="progress-checklist">
+                  <li className="done">Notes Read</li>
+                  <li className={progress[activeConcept?.topic] >= 100 ? 'done' : 'pending'}>Quiz Completed</li>
+                  <li className="pending">Concept Map</li>
+                </ul>
+                <button
+                  className="secondary-action"
+                  type="button"
+                  onClick={() => handleMarkCompleted(activeConcept?.topic)}
+                >
+                  Mark as Completed
+                </button>
+              </div>
+            </aside>
+          </div>
         </div>
-      );
+      </div>
+    );
   };
 
   return (
@@ -716,7 +883,17 @@ const ConceptPages = ({ initialTopic }) => {
                 setActiveTab('overview'); // Reset to overview when switching concepts
               }}
             >
-              <div className="concept-icon">📘</div>
+              <div className="concept-icon">
+                {getTopicContent(concept.topic).image ? (
+                  <img 
+                    src={getTopicContent(concept.topic).image} 
+                    alt={concept.topic}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }}
+                  />
+                ) : (
+                  '📘'
+                )}
+              </div>
               <div className="concept-info">
                 <div className="concept-title">{concept.title}</div>
                 <div className="concept-description">{concept.description}</div>
@@ -754,9 +931,9 @@ const ConceptPages = ({ initialTopic }) => {
               </button>
             </div>
             <div className="concept-map-modal-content">
-              <TopicConceptMap 
+              <TopicConceptMap
                 key={`topic-map-${conceptMapTopic || activeConcept?.topic || 'default'}`}
-                topic={conceptMapTopic || activeConcept?.topic} 
+                topic={conceptMapTopic || activeConcept?.topic}
               />
             </div>
           </div>

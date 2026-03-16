@@ -6,6 +6,7 @@ const Gamification = require("../models/Gamification");
 const UserProgress = require("../models/UserProgress");
 const { checkBadgeUnlocks, getQuizXp } = require("../utils/badgeDefinitions");
 const { generateQuestions } = require("../utils/questionGenerator");
+const { updateConceptWeight } = require("../services/smartConceptRouter");
 
 const router = express.Router();
 
@@ -370,6 +371,42 @@ router.post("/:id/attempt", auth, async (req, res) => {
         console.error('Revision trigger error:', revErr);
       }
 
+      // Smart Concept Graph Integration: Update weights on failure or ensure node on success
+      try {
+        const { ensureConceptInGraph, updateConceptWeight, reduceConceptWeight } = require('../services/smartConceptRouter');
+        
+        // Ensure the current topic is in the graph
+        await ensureConceptInGraph(quiz.topic);
+        
+        if (score < 70) {
+          const { previousConcept } = req.body;
+          if (previousConcept) {
+            await updateConceptWeight(quiz.topic, previousConcept);
+          } else {
+            // Fallback: If no previousConcept provided, we could try to find any existing prerequisite
+            // and increment its weight as a general "this concept is hard" signal
+            const ConceptGraph = require('../models/ConceptGraph');
+            const node = await ConceptGraph.findOne({ concept: quiz.topic });
+            if (node && node.prerequisites && node.prerequisites.length > 0) {
+              // Increment the weight of the most significant prerequisite
+              const sorted = node.prerequisites.sort((a, b) => b.weight - a.weight);
+              await updateConceptWeight(quiz.topic, sorted[0].concept);
+            }
+          }
+        } else {
+          // Success: Reduce weights for existing prerequisites
+          const ConceptGraph = require('../models/ConceptGraph');
+          const node = await ConceptGraph.findOne({ concept: quiz.topic });
+          if (node && node.prerequisites && node.prerequisites.length > 0) {
+            for (const pre of node.prerequisites) {
+              await reduceConceptWeight(quiz.topic, pre.concept);
+            }
+          }
+        }
+      } catch (graphErr) {
+        console.error('Concept Graph update error:', graphErr);
+      }
+
       res.json({
         score,
         correct,
@@ -478,6 +515,8 @@ router.get("/:id/stats", auth, async (req, res) => {
       studentPerformance: attempts.map(attempt => ({
         student: attempt.student,
         score: attempt.score,
+        timeSpent: attempt.timeSpent,
+        confidenceLevel: attempt.confidenceLevel,
         completedAt: attempt.completedAt
       }))
     };

@@ -7,6 +7,7 @@ const QuizAttempt = require('../models/QuizAttempt');
 const Concept = require('../models/Concept');
 const UserProgress = require('../models/UserProgress');
 const Quiz = require('../models/Quiz');
+const { findMissingConcept } = require('../services/smartConceptRouter');
 
 /**
  * Calculate mastery level for a specific topic based on quiz attempts
@@ -158,6 +159,37 @@ async function generateLearningPath(userId) {
     // 5. Fetch related concepts for weak areas
     const recommendedTopics = [];
     
+    // SMART GRAPH INTEGRATION: Identify most critical prerequisite for the weakest area
+    if (weakAreas.length > 0) {
+      const weakest = weakAreas[0];
+      const missingPrerequisite = await findMissingConcept(weakest.topic);
+      
+      if (missingPrerequisite) {
+        // Find information for the prerequisite
+        const prerequisiteConcept = await Concept.findOne({ 
+          topic: missingPrerequisite,
+          status: 'approved',
+          isActive: true
+        }).select('title difficulty estimatedTime');
+
+        if (prerequisiteConcept) {
+          recommendedTopics.push({
+            rank: 1,
+            title: prerequisiteConcept.title,
+            topic: missingPrerequisite,
+            difficulty: prerequisiteConcept.difficulty || 'Beginner',
+            estimatedTime: prerequisiteConcept.estimatedTime || 30,
+            masteryLevel: 0, // Prerequisite might be unknown
+            priority: 'urgent',
+            priorityScore: 100,
+            reason: `⚡ Smart Graph Recommendation: You're struggling with "${weakest.topic}" because of missing foundation in "${missingPrerequisite}". Focus on this first.`,
+            recommendedAction: 'Master Foundation',
+            step: 'Step 0: Prerequisite Correction'
+          });
+        }
+      }
+    }
+
     // Priority 1: Most critical weak areas (highest mastery gap)
     for (const weakArea of weakAreas) {
       const concepts = await Concept.find({

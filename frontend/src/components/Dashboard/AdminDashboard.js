@@ -6,19 +6,31 @@ import AdminQuizzes from './AdminQuizzes';
 import AdminAnalytics from './AdminAnalytics';
 import MisconceptionAnalytics from './MisconceptionAnalytics';
 import AdminSystemSettings from './AdminSystemSettings';
+import ContentManagement from './ContentManagement';
 import SubscriptionPage from '../../pages/SubscriptionPage';
 import VideoManager from '../Videos/VideoManager';
 import ConceptDependencyRiskAnalyzer from '../ConceptDependency/ConceptDependencyRiskAnalyzer';
 import LearningPath from '../Progress/LearningPath';
 import ExamManager from '../Exams/ExamManager';
 import RemediationModule from '../Remediation/RemediationModule';
-import ARMultimediaModule from '../ARMultimedia/ARMultimediaModule';
+import ARMultimediaModule from '../AR/ARMultimediaModule';
 import RevisionModule from '../Revision/RevisionModule';
 import PeriodicTable from '../PeriodicTable/PeriodicTable';
 import ChemicalEquations from '../ChemicalEquations/ChemicalEquations';
 import ChemistryCalculator from '../ChemistryCalculator/ChemistryCalculator';
-import MoleculeAnimation from '../MoleculeAnimation/MoleculeAnimation';
+import MoleculeAnimation from '../AR/MoleculeAnimation';
 import Leaderboard from '../Gamification/Leaderboard';
+import ChemistrySandbox from '../LabSimulation/ChemistrySandbox';
+import LabSimulation from '../LabSimulation/LabSimulation';
+import ReactionVisualizer from '../ReactionVisualizer/ReactionVisualizer';
+import ConceptPages from '../Concepts/ConceptPages';
+import QuizEngine from '../Quiz/QuizEngine';
+import ProgressTracker from '../Progress/ProgressTracker';
+import StudentExamSelector from '../Exams/StudentExamSelector';
+import ConfidenceMeter from '../Progress/ConfidenceMeter';
+import PerformanceDashboard from '../Progress/PerformanceDashboard';
+import KnowledgeGraphVisualizer from '../KnowledgeGraph/KnowledgeGraphVisualizer';
+import SmartConceptGraph from '../KnowledgeGraph/SmartConceptGraph';
 import api from '../../apiClient';
 import { toast } from 'react-toastify';
 import {
@@ -54,7 +66,7 @@ const AdminDashboard = ({ activeTab, setActiveTab }) => {
         api.get('/quiz'),
         api.get('/admin/analytics/users-by-role')
       ]);
-      
+
       setCounts({
         users: (analyticsRes?.data?.admin || 0) + (analyticsRes?.data?.teacher || 0) + (analyticsRes?.data?.student || 0) || 2847,
         students: analyticsRes?.data?.student || 2234,
@@ -447,13 +459,25 @@ const AdminDashboard = ({ activeTab, setActiveTab }) => {
       case 'overview':
         return renderOverview();
       case 'concepts':
-        return <AdminConcepts />;
+        return <ConceptPages />;
       case 'quizzes':
         return <AdminQuizzes />;
+      case 'progress':
+        return <ProgressTracker />;
+      case 'confidence':
+        return <ConfidenceMeter />;
       case 'videos':
         return <VideoManager role="admin" />;
       case 'exams':
-        return <ExamManager role="admin" />;
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <ExamManager role="admin" />
+            <div className="dashboard-card">
+              <h3>Student View: Scheduled Exams</h3>
+              <StudentExamSelector />
+            </div>
+          </div>
+        );
       case 'dependency-risk':
         return <ConceptDependencyRiskAnalyzer mode="admin" />;
       case 'analytics':
@@ -462,41 +486,53 @@ const AdminDashboard = ({ activeTab, setActiveTab }) => {
         return <MisconceptionAnalytics />;
       case 'users':
         return <AdminUsers />;
+      case 'content':
+        return <ContentManagement user={{ id: 'admin', role: 'admin' }} />;
       case 'periodic-table':
-        return (
-          <div className="dashboard-card">
-            <h3>Periodic Table</h3>
-            <div style={{ paddingTop: 8 }}>
-              {React.createElement(require('../PeriodicTable/PeriodicTable').default)}
-            </div>
-          </div>
-        );
+        return <PeriodicTable />;
       case 'concept-map':
-        return (
-          <div className="dashboard-card">
-            <h3>Concept Map Moderation</h3>
-            <div style={{ paddingTop: 8 }}>
-              {React.createElement(require('../Admin/AdminConceptMapModeration').default)}
-            </div>
-          </div>
-        );
+        return <KnowledgeGraphVisualizer />;
+      case 'smart-graph':
+        return <SmartConceptGraph />;
       case 'learning-path':
-        return (
-          <div className="dashboard-card">
-            <h3>Student Learning Paths</h3>
-            <div style={{ paddingTop: 8 }}>
-              <LearningPath role="admin" />
-            </div>
-          </div>
-        );
+        return <LearningPath role="admin" />;
       case 'system':
         return (
           <div className="tab-content">
             <AdminSystemSettings />
           </div>
         );
+      case 'performance-dashboard':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <AdminAnalytics />
+            <div className="dashboard-card">
+              <h3>Student Performance View</h3>
+              <PerformanceDashboard />
+            </div>
+          </div>
+        );
       case 'subscription':
         return <SubscriptionPage user={{ role: 'admin' }} />;
+      case 'lab-simulation':
+      case 'chemistry-sandbox':
+        return <LabSimulation role="admin" />;
+      case 'reaction-visualizer':
+        return <ReactionVisualizer />;
+      case 'molecule-animation':
+        return <MoleculeAnimation />;
+      case 'chemical-equations':
+        return <ChemicalEquations />;
+      case 'chemistry-calculator':
+        return <ChemistryCalculator />;
+      case 'ar-multimedia':
+        return <ARMultimediaModule />;
+      case 'remediation':
+        return <RemediationModule />;
+      case 'revision':
+        return <RevisionModule />;
+      case 'gamification':
+        return <Leaderboard />;
       case 'reports':
         return (
           <div className="reports-section">

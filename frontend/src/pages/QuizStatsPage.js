@@ -125,17 +125,37 @@ const QuizStatsPage = () => {
       <div className="qs-section">
         <h3 className="qs-section-title">Student Performance</h3>
         {stats.studentPerformance?.length ? (
-          <div className="qs-card">
-            <div className="qs-list">
-              {stats.studentPerformance.map((sp, idx) => (
-                <Bar
-                  key={idx}
-                  label={sp.student?.name || sp.student?.email || 'Student'}
-                  value={sp.score}
-                  max={100}
-                />
-              ))}
-            </div>
+          <div className="qs-card qs-table-wrapper">
+            <table className="qs-table">
+              <thead>
+                <tr>
+                  <th>Student Name/Email</th>
+                  <th>Score</th>
+                  <th>Time Spent</th>
+                  <th>Confidence</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.studentPerformance.map((sp, idx) => {
+                  const scoreClass = sp.score >= 80 ? 'qs-score-high' : sp.score >= 50 ? 'qs-score-mid' : 'qs-score-low';
+                  const timeStr = sp.timeSpent ? `${Math.floor(sp.timeSpent / 60)}m ${sp.timeSpent % 60}s` : 'N/A';
+                  return (
+                    <tr key={idx}>
+                      <td>{sp.student?.name || sp.student?.email || 'Unknown Student'}</td>
+                      <td>
+                        <span className={`qs-score-badge ${scoreClass}`}>
+                          {sp.score}%
+                        </span>
+                      </td>
+                      <td>{timeStr}</td>
+                      <td>{sp.confidenceLevel ? `${sp.confidenceLevel}/5` : 'N/A'}</td>
+                      <td>{sp.completedAt ? new Date(sp.completedAt).toLocaleDateString() : 'N/A'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         ) : (
           <div className="qs-empty">No attempts yet.</div>

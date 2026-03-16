@@ -19,6 +19,7 @@ import MoleculeAnimation from '../AR/MoleculeAnimation';
 import LabSimulation from '../LabSimulation/LabSimulation';
 import ChemistrySandbox from '../LabSimulation/ChemistrySandbox';
 import ReactionVisualizer from '../ReactionVisualizer/ReactionVisualizer';
+import SmartConceptGraph from '../KnowledgeGraph/SmartConceptGraph';
 import RevisionModule from '../Revision/RevisionModule';
 import SubscriptionModule from './SubscriptionModule';
 import KnowledgeGraphVisualizer from '../KnowledgeGraph/KnowledgeGraphVisualizer';
@@ -91,11 +92,11 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
           type: 'quiz',
           title: attempt.quiz?.title || 'Quiz Attempt',
           score: attempt.score || 0,
-          date: attempt.completedAt 
-            ? new Date(attempt.completedAt).toLocaleDateString() 
-            : attempt.createdAt 
-            ? new Date(attempt.createdAt).toLocaleDateString()
-            : 'Recently',
+          date: attempt.completedAt
+            ? new Date(attempt.completedAt).toLocaleDateString()
+            : attempt.createdAt
+              ? new Date(attempt.createdAt).toLocaleDateString()
+              : 'Recently',
           topic: attempt.quiz?.topic || 'General'
         }));
         setRecentActivity(formattedActivity);
@@ -129,172 +130,112 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
   }, []);
 
   const renderOverview = () => {
-    const progress = [
-      { label: 'Acids & Bases', value: 75 },
-      { label: 'Periodic Table', value: 60 },
-      { label: 'Chemical Bonding', value: 40 },
-      { label: 'Thermodynamics', value: 20 },
-    ];
-
     return (
-      <div className="student-home">
-        <div className="student-hero">
-          <div>
-            <div className="student-hero-greeting">Welcome back, {userName}!</div>
-            <div className="student-hero-subtitle">Ready to explore chemistry today?</div>
+      <div className="teacher-overview fade-in"> {/* Reusing teacher styles for consistency */}
+        <div className="overview-header">
+          <div className="welcome-section">
+            <h1 className="welcome-text">Welcome back, <span className="highlight-text">{userName}</span>!</h1>
+            <p className="welcome-subtext">Ready to continue your chemistry journey today?</p>
           </div>
-          <button
-            className="upgrade-btn"
-            onClick={() => setActiveTab('subscription')}
-          >
-            Upgrade Plan
-          </button>
-        </div>
-
-        <div className="learning-progress-card">
-          <div className="lp-header">
-            <div className="lp-title">Learning Progress</div>
-            <div className="lp-subtitle">Your progress across different chemistry concepts</div>
-          </div>
-          <div className="lp-tracks">
-            {progress.map((item) => (
-              <div key={item.label} className="lp-row">
-                <div className="lp-row-header">
-                  <span className="lp-row-label">{item.label}</span>
-                  <span className="lp-row-value">{item.value}%</span>
-                </div>
-                <div className="lp-bar">
-                  <div className="lp-bar-fill" style={{ width: `${item.value}%` }} />
-                </div>
-                <button
-                  className="lp-cta"
-                  onClick={() => setActiveTab('concepts')}
-                >
-                  Continue
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="student-feature-grid">
-          <button className="feature-card" onClick={() => setActiveTab('concepts')}>
-            <div className="feature-icon blue">📘</div>
-            <div className="feature-title">Study Notes</div>
-            <div className="feature-sub">Access comprehensive chemistry concepts</div>
-          </button>
-          <button className="feature-card" onClick={() => setActiveTab('concept-map')}>
-            <div className="feature-icon green">🧠</div>
-            <div className="feature-title">Concept Mapping</div>
-            <div className="feature-sub">Build connections between topics</div>
-          </button>
-          <button className="feature-card" onClick={() => setActiveTab('knowledge-graph')}>
-            <div className="feature-icon teal">🗺️</div>
-            <div className="feature-title">Knowledge Graph</div>
-            <div className="feature-sub">Visualize concept relationships</div>
-          </button>
-          <button className="feature-card" onClick={() => setActiveTab('quizzes')}>
-            <div className="feature-icon purple">🧪</div>
-            <div className="feature-title">Take Quiz</div>
-            <div className="feature-sub">Test your understanding</div>
-          </button>
-          <button className="feature-card" onClick={() => setActiveTab('revision')}>
-            <div className="feature-icon pink">⏰</div>
-            {studentStats.dueRevisions > 0 && (
-              <span className="feature-badge alert">{studentStats.dueRevisions}</span>
-            )}
-            <div className="feature-title">AI Revision</div>
-            <div className="feature-sub">Spaced repetition scheduler</div>
-          </button>
-          <button className="feature-card" onClick={() => setActiveTab('learning-path')}>
-            <div className="feature-icon red">🛣️</div>
-            <div className="feature-title">Learning Path</div>
-            <div className="feature-sub">AI-generated roadmap for you</div>
-          </button>
-          <button className="feature-card" onClick={() => setActiveTab('performance-dashboard')}>
-            <div className="feature-icon orange">📈</div>
-            <div className="feature-title">Performance</div>
-            <div className="feature-sub">Track your progress</div>
-          </button>
-          <button className="feature-card" onClick={() => setActiveTab('gamification')}>
-            <div className="feature-icon gold">🏆</div>
-            <div className="feature-title">Achievements</div>
-            <div className="feature-sub">View badges and leaderboard</div>
-          </button>
-        </div>
-
-        <div className="recent-activity-card">
-          <div className="ra-header">
-            <div>
-              <div className="ra-title">Recent Activity</div>
-              <div className="ra-subtitle">Your latest learning sessions</div>
+          <div className="quick-stats-row">
+            <div className="stat-pill">
+              <span className="stat-icon">🔥</span>
+              <span className="stat-value">{studentStats.currentStreak} Day Streak</span>
+            </div>
+            <div className="stat-pill">
+              <span className="stat-icon">⭐</span>
+              <span className="stat-value">Level {studentStats.level}</span>
             </div>
           </div>
-          <div className="ra-list">
-            {recentActivity.length > 0 ? (
-              recentActivity.map((activity) => (
-                <div key={activity.id} className="ra-item quiz">
-                  <div className="ra-icon">🧪</div>
-                  <div className="ra-content">
-                    <div className="ra-main">
-                      <div className="ra-label">{activity.title}</div>
-                      <span className="ra-pill success">Passed</span>
-                    </div>
-                    <div className="ra-meta">
-                      <span>Scored {activity.score}%</span>
-                      <span>•</span>
-                      <span>{activity.date}</span>
-                    </div>
-                  </div>
+        </div>
+
+        <div className="dashboard-grid">
+          {/* Main Stats Card */}
+          <div className="dashboard-card main-stats-card">
+            <h3 className="card-title">Performance Overview</h3>
+            <div className="stats-grid">
+              <div className="stat-item">
+                <div className="stat-circle" style={{ borderColor: '#6366f1' }}>
+                  <span className="stat-number">{studentStats.conceptsLearned}</span>
                 </div>
-              ))
-            ) : (
-              <>
-                <div className="ra-item quiz">
-                  <div className="ra-icon">🧪</div>
-                  <div className="ra-content">
-                    <div className="ra-main">
-                      <div className="ra-label">Acids & Bases Quiz</div>
-                      <span className="ra-pill success">Passed</span>
-                    </div>
-                    <div className="ra-meta">
-                      <span>Scored 85%</span>
-                      <span>•</span>
-                      <span>2 hours ago</span>
-                    </div>
-                  </div>
+                <span className="stat-label">Concepts Mastered</span>
+              </div>
+              <div className="stat-item">
+                <div className="stat-circle" style={{ borderColor: '#10b981' }}>
+                  <span className="stat-number">{studentStats.accuracy}%</span>
                 </div>
-                <div className="ra-item study">
-                  <div className="ra-icon">📗</div>
-                  <div className="ra-content">
-                    <div className="ra-main">
-                      <div className="ra-label">Chemical Bonding Notes</div>
-                      <span className="ra-pill neutral">Completed</span>
-                    </div>
-                    <div className="ra-meta">
-                      <span>Studied for 45 minutes</span>
-                      <span>•</span>
-                      <span>Yesterday</span>
-                    </div>
-                  </div>
+                <span className="stat-label">Avg. Accuracy</span>
+              </div>
+              <div className="stat-item">
+                <div className="stat-circle" style={{ borderColor: '#f59e0b' }}>
+                  <span className="stat-number">{studentStats.xpPoints}</span>
                 </div>
-                <div className="ra-item mapping">
-                  <div className="ra-icon">🗺️</div>
-                  <div className="ra-content">
-                    <div className="ra-main">
-                      <div className="ra-label">Concept Map Created</div>
-                      <span className="ra-pill neutral">Saved</span>
-                    </div>
-                    <div className="ra-meta">
-                      <span>Periodic trends mapping</span>
-                      <span>•</span>
-                      <span>3 days ago</span>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+                <span className="stat-label">Total XP</span>
+              </div>
+            </div>
           </div>
+
+          {/* Recent Activity Card */}
+          <div className="dashboard-card activity-card">
+            <h3 className="card-title">Recent Activity</h3>
+            <div className="activity-list">
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity) => (
+                  <div key={activity.id} className="activity-item">
+                    <div className="activity-icon-bg">
+                      {activity.type === 'quiz' ? '📝' : '🧪'}
+                    </div>
+                    <div className="activity-details">
+                      <div className="activity-title">{activity.title}</div>
+                      <div className="activity-meta">
+                        <span>{activity.date}</span>
+                        <span>•</span>
+                        <span>{activity.score}% accuracy</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <span className="empty-icon">📜</span>
+                  <p>No recent activity. Start a module to see progress!</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Actions Card */}
+          <div className="dashboard-card actions-card">
+            <h3 className="card-title">Next Steps</h3>
+            <div className="action-buttons">
+              <button onClick={() => setActiveTab('learning-path')} className="action-btn primary">
+                <span className="btn-icon">📚</span>
+                <span>Continue Learning Path</span>
+              </button>
+              <button onClick={() => setActiveTab('chemistry-sandbox')} className="action-btn secondary">
+                <span className="btn-icon">🧪</span>
+                <span>Enter Virtual Lab</span>
+              </button>
+              <button onClick={() => setActiveTab('quizzes')} className="action-btn tertiary">
+                <span className="btn-icon">✍️</span>
+                <span>Take a Quiz</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Pending Tasks */}
+          {studentStats.dueRevisions > 0 && (
+            <div className="dashboard-card alert-card">
+              <h3 className="card-title">Attention Needed</h3>
+              <div className="alert-content">
+                <div className="alert-icon">⏰</div>
+                <div className="alert-text">
+                  You have <strong>{studentStats.dueRevisions}</strong> topics due for revision. Keep your knowledge fresh!
+                </div>
+                <button onClick={() => setActiveTab('revision')} className="alert-btn">Review Now</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -312,6 +253,8 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
         return <RevisionModule />;
       case 'concept-map':
         return <ConceptMap role="student" />;
+      case 'smart-graph':
+        return <SmartConceptGraph />;
       case 'knowledge-graph':
         return <KnowledgeGraphVisualizer />;
       case 'dependency-risk':
@@ -346,19 +289,16 @@ const StudentDashboard = ({ activeTab, setActiveTab }) => {
       case 'molecule-animation':
         return <MoleculeAnimation />;
       case 'lab-simulation':
-        return <LabSimulation />;
       case 'chemistry-sandbox':
-        return <ChemistrySandbox />;
+        return <LabSimulation role="student" />;
       case 'reaction-visualizer':
         return <ReactionVisualizer />;
-      case 'periodic-table':
-        return <PeriodicTable />;
       case 'chemical-equations':
         return <ChemicalEquations />;
       case 'chemistry-calculator':
         return <ChemistryCalculator />;
       case 'gamification':
-        return <GamifiedTracker />;
+        return <Leaderboard />;
       case 'performance-dashboard':
         return <PerformanceDashboard />;
       case 'subscription':

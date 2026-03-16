@@ -164,13 +164,20 @@ const ReactionVisualizer = () => {
   const chartOptions = useMemo(
     () => ({
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: { enabled: true }
       },
       scales: {
-        y: { title: { display: true, text: 'Energy' } },
-        x: { title: { display: true, text: 'Progress' } }
+        y: { 
+          title: { display: false },
+          ticks: { font: { size: 10 } }
+        },
+        x: { 
+           title: { display: false },
+           ticks: { font: { size: 10 } }
+        }
       }
     }),
     []
@@ -248,130 +255,76 @@ const ReactionVisualizer = () => {
   }, [rxn, step, style, maxStep]);
 
   return (
-    <div className="dashboard-card">
-      <h3>{rxn.title}</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div>
-          <div style={{ marginBottom: 8 }}>
-            <select value={selected} onChange={(e) => setSelected(e.target.value)}>
-              <option value="water">Water Formation</option>
-              <option value="neutralization">Acid–Base Neutralization</option>
-              <option value="combustion">Methane Combustion</option>
-            </select>
+    <div className="dashboard-card rv-main-card">
+      <div className="rv-top-row">
+        <div className="rv-selection-panel">
+          <select value={selected} onChange={(e) => setSelected(e.target.value)} className="rv-select">
+            {reactionKeys.map(k => (
+              <option key={k} value={k}>{reactions[k].title}</option>
+            ))}
+          </select>
+          <div className="rv-equation-small">{rxn.equation}</div>
+        </div>
+
+        <div className="rv-playback-panel">
+          <div className="rv-controls-mini">
+            <button onClick={() => setStep((s) => Math.max(0, s - 1))} className="rv-btn-mini">◀</button>
+            <button onClick={() => setPlaying((p) => !p)} className="rv-btn-play-mini">{playing ? 'Pause' : 'Play'}</button>
+            <button onClick={() => setStep((s) => Math.min(maxStep, s + 1))} className="rv-btn-mini">▶</button>
+            <div className="rv-step-count-mini">{step + 1}/{rxn.steps.length}</div>
           </div>
-          <div style={{ fontSize: 18, marginBottom: 8 }}>{rxn.equation}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8, marginBottom: 8 }}>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search reactions..."
-              style={{ padding: 8 }}
-            />
-            <select value={selected} onChange={(e) => setSelected(e.target.value)}>
-              {filteredKeys.map((k) => (
-                <option key={k} value={k}>{reactions[k].title}</option>
-              ))}
-            </select>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <button onClick={() => setStep((s) => Math.max(0, s - 1))}>◀</button>
-            <button onClick={() => setPlaying((p) => !p)}>{playing ? 'Pause' : 'Play'}</button>
-            <button onClick={() => setStep((s) => Math.min(maxStep, s + 1))}>▶</button>
-            <input
-              type="range"
-              min={0}
-              max={maxStep}
-              step={1}
-              value={step}
-              onChange={(e) => setStep(Number(e.target.value))}
-              style={{ flex: 1 }}
-            />
-            <div>{step + 1}/{rxn.steps.length}</div>
-          </div>
-          <div style={{ padding: 12, borderRadius: 8, background: '#f7f7fb' }}>
-            <div style={{ fontWeight: 600 }}>{rxn.steps[step].label}</div>
-            <div>{rxn.steps[step].desc}</div>
+          <input
+            type="range"
+            min={0}
+            max={maxStep}
+            step={1}
+            value={step}
+            onChange={(e) => setStep(Number(e.target.value))}
+            className="rv-slider-mini"
+          />
+        </div>
+
+        <div className="rv-stoich-panel-mini">
+           <div className="rv-stoich-grid-mini">
+             {reactantKeys.map(r => (
+               <div key={r} className="rv-stoich-item-mini">
+                 <span>{r}:</span>
+                 <input
+                   type="number"
+                   value={inputs[r] ?? ''}
+                   onChange={(e) => setInputs(prev => ({ ...prev, [r]: e.target.value }))}
+                   className="rv-input-mini"
+                 />
+               </div>
+             ))}
+           </div>
+           {result && <div className="rv-extent-mini">Yield: {result.extent.toFixed(1)}x</div>}
+        </div>
+      </div>
+
+      <div className="rv-main-grid">
+        <div className="rv-chart-container-compact">
+          <div className="rv-panel-label">Energy Profile</div>
+          <div className="rv-chart-wrapper-compact">
+            <Line data={chartData} options={chartOptions} />
           </div>
         </div>
-        <div>
-          <Line data={chartData} options={chartOptions} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
-            <div>
-              <div style={{ marginBottom: 6 }}>3D View Style</div>
-              <select value={style} onChange={(e) => setStyle(e.target.value)} style={{ width: '100%' }}>
-                <option value="stick">Stick</option>
-                <option value="ballstick">Ball & Stick</option>
-                <option value="spacefill">Space Fill</option>
-              </select>
-            </div>
-            <div />
+
+        <div className="rv-visual-container-compact">
+          <div className="rv-model-box">
+             <div className="rv-panel-label">Reactants</div>
+             <div ref={reactantsRef} className="rv-3d-viewer-compact" />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 12 }}>
-            <div>
-              <div style={{ fontWeight: 600, marginBottom: 6 }}>Reactants</div>
-              <div ref={reactantsRef} style={{ width: '100%', height: 220, border: '1px solid #eee', borderRadius: 8 }} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 600, marginBottom: 6 }}>Products</div>
-              <div ref={productsRef} style={{ width: '100%', height: 220, border: '1px solid #eee', borderRadius: 8 }} />
-            </div>
+          <div className="rv-model-box">
+             <div className="rv-panel-label">Products</div>
+             <div ref={productsRef} className="rv-3d-viewer-compact" />
           </div>
         </div>
       </div>
-      <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Stoichiometry</div>
-          <div style={{ marginBottom: 6 }}>Enter moles of reactants</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {reactantKeys.map((r) => (
-              <div key={r} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <label style={{ width: 80 }}>{r}</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={inputs[r] ?? ''}
-                  onChange={(e) => setInputs((prev) => ({ ...prev, [r]: e.target.value }))}
-                  style={{ flex: 1 }}
-                />
-              </div>
-            ))}
-          </div>
-          {result ? (
-            <div style={{ marginTop: 12 }}>
-              <div style={{ marginBottom: 8 }}>Extent: {result.extent.toFixed(2)}</div>
-              <div style={{ marginBottom: 4 }}>Products (moles):</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {productKeys.map((p) => (
-                  <div key={p} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <label style={{ width: 80 }}>{p}</label>
-                    <div>{result.products[p].toFixed(2)}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 8, marginBottom: 4 }}>Leftover Reactants (moles):</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {reactantKeys.map((r) => (
-                  <div key={r} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <label style={{ width: 80 }}>{r}</label>
-                    <div>{result.leftovers[r].toFixed(2)}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div style={{ marginTop: 12, color: '#6b7280' }}>Enter reactant amounts to calculate products and leftovers.</div>
-          )}
-        </div>
-        <div>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Key Ideas</div>
-          <ul style={{ margin: 0, paddingLeft: 16 }}>
-            <li>Use the slider or play controls to move through the reaction.</li>
-            <li>The energy profile highlights activation energy and products.</li>
-            <li>Try different reactions from the dropdown.</li>
-            <li>Use stoichiometry to see limiting reagent effects.</li>
-            <li>Reactants render on the left and products on the right in 3D.</li>
-          </ul>
+
+      <div className="rv-footer-info">
+        <div className="rv-step-info-compact">
+          <span className="rv-step-label-compact">{rxn.steps[step].label}:</span> {rxn.steps[step].desc}
         </div>
       </div>
     </div>

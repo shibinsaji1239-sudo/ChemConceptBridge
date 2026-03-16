@@ -8,7 +8,8 @@ const ChemistryCalculator = () => {
     molarity: { moles: '', volume: '', concentration: '' },
     dilution: { c1: '', v1: '', c2: '', v2: '' },
     ph: { concentration: '', acidType: 'strong' },
-    stoichiometry: { reactant1: '', reactant2: '', product1: '', product2: '', mass1: '' }
+    stoichiometry: { reactant1: '', reactant2: '', product1: '', product2: '', mass1: '' },
+    titration: { M1: '', V1: '', M2: '', V2: '', a: '1', b: '1', unknown: 'M1' }
   });
 
   const calculateMolarity = () => {
@@ -83,6 +84,19 @@ const ChemistryCalculator = () => {
     }
 
     setResults({ ...results, type: 'stoichiometry' });
+  };
+
+  const calculateTitration = () => {
+    const { M1, V1, M2, V2, a, b, unknown } = inputs.titration;
+    const A = parseFloat(a || '1');
+    const B = parseFloat(b || '1');
+    const r = {};
+    const f = (x) => parseFloat(x);
+    if (unknown === 'M1' && V1 && M2 && V2) r.M1 = ((f(M2) * f(V2) * B) / (f(V1) * A)).toFixed(6);
+    if (unknown === 'V1' && M1 && M2 && V2) r.V1 = ((f(M2) * f(V2) * B) / (f(M1) * A)).toFixed(6);
+    if (unknown === 'M2' && M1 && V1 && V2) r.M2 = ((f(M1) * f(V1) * A) / (f(V2) * B)).toFixed(6);
+    if (unknown === 'V2' && M1 && V1 && M2) r.V2 = ((f(M1) * f(V1) * A) / (f(M2) * B)).toFixed(6);
+    setResults({ ...r, type: 'titration' });
   };
 
   const handleInputChange = (category, field, value) => {
@@ -329,6 +343,100 @@ const ChemistryCalculator = () => {
     </div>
   );
 
+  const renderTitrationCalculator = () => (
+    <div className="calculator-section">
+      <h3>Titration Calculator</h3>
+      <p>Use M1×V1×a = M2×V2×b. Choose the unknown and enter the others.</p>
+
+      <div className="input-group">
+        <label>Unknown:</label>
+        <select
+          value={inputs.titration.unknown}
+          onChange={(e) => handleInputChange('titration', 'unknown', e.target.value)}
+        >
+          <option value="M1">M1</option>
+          <option value="V1">V1</option>
+          <option value="M2">M2</option>
+          <option value="V2">V2</option>
+        </select>
+      </div>
+
+      <div className="input-group">
+        <label>M1 (M):</label>
+        <input
+          type="number"
+          disabled={inputs.titration.unknown === 'M1'}
+          value={inputs.titration.M1}
+          onChange={(e) => handleInputChange('titration', 'M1', e.target.value)}
+          placeholder="M1"
+        />
+      </div>
+      <div className="input-group">
+        <label>V1 (mL):</label>
+        <input
+          type="number"
+          disabled={inputs.titration.unknown === 'V1'}
+          value={inputs.titration.V1}
+          onChange={(e) => handleInputChange('titration', 'V1', e.target.value)}
+          placeholder="V1"
+        />
+      </div>
+      <div className="input-group">
+        <label>M2 (M):</label>
+        <input
+          type="number"
+          disabled={inputs.titration.unknown === 'M2'}
+          value={inputs.titration.M2}
+          onChange={(e) => handleInputChange('titration', 'M2', e.target.value)}
+          placeholder="M2"
+        />
+      </div>
+      <div className="input-group">
+        <label>V2 (mL):</label>
+        <input
+          type="number"
+          disabled={inputs.titration.unknown === 'V2'}
+          value={inputs.titration.V2}
+          onChange={(e) => handleInputChange('titration', 'V2', e.target.value)}
+          placeholder="V2"
+        />
+      </div>
+
+      <div className="input-group">
+        <label>a (analyte equivalents):</label>
+        <input
+          type="number"
+          value={inputs.titration.a}
+          onChange={(e) => handleInputChange('titration', 'a', e.target.value)}
+          placeholder="a"
+        />
+      </div>
+      <div className="input-group">
+        <label>b (titrant equivalents):</label>
+        <input
+          type="number"
+          value={inputs.titration.b}
+          onChange={(e) => handleInputChange('titration', 'b', e.target.value)}
+          placeholder="b"
+        />
+      </div>
+
+      <div className="button-group">
+        <button onClick={calculateTitration} className="calculate-btn">Calculate</button>
+        <button onClick={() => clearInputs('titration')} className="clear-btn">Clear</button>
+      </div>
+
+      {results.type === 'titration' && (
+        <div className="results">
+          {results.M1 && <div>M1: {results.M1} M</div>}
+          {results.V1 && <div>V1: {results.V1} mL</div>}
+          {results.M2 && <div>M2: {results.M2} M</div>}
+          {results.V2 && <div>V2: {results.V2} mL</div>}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="chemistry-calculator">
       <div className="cc-header">
@@ -337,6 +445,12 @@ const ChemistryCalculator = () => {
       </div>
 
       <div className="calculator-tabs">
+        <button
+          className={activeTab === 'titration' ? 'tab active' : 'tab'}
+          onClick={() => setActiveTab('titration')}
+        >
+          Titration
+        </button>
         <button
           className={activeTab === 'molarity' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab('molarity')}
@@ -364,6 +478,7 @@ const ChemistryCalculator = () => {
       </div>
 
       <div className="calculator-content">
+        {activeTab === 'titration' && renderTitrationCalculator()}
         {activeTab === 'molarity' && renderMolarityCalculator()}
         {activeTab === 'dilution' && renderDilutionCalculator()}
         {activeTab === 'ph' && renderPHCalculator()}

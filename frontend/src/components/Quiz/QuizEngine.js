@@ -18,6 +18,8 @@ const QuizEngine = () => {
   const [userPerformance, setUserPerformance] = useState(null);
   const [systemSettings, setSystemSettings] = useState(null);
   const [reasonings, setReasonings] = useState({});
+  const [previousConcept, setPreviousConcept] = useState('');
+  const [allTopics, setAllTopics] = useState([]);
 
   // 🧠 Cognitive Load Tracking
   const [cognitiveSessionId, setCognitiveSessionId] = useState(null);
@@ -61,6 +63,14 @@ const QuizEngine = () => {
         }
       } catch (e) {
         console.error("Failed to fetch prediction", e);
+      }
+
+      try {
+        const { data } = await api.get('/concept');
+        const topics = [...new Set((data || []).map(c => c.topic || c.title))].filter(Boolean);
+        setAllTopics(topics);
+      } catch (e) {
+        console.error("Failed to fetch topics", e);
       }
 
       try {
@@ -179,7 +189,8 @@ const QuizEngine = () => {
           reasoning: reasonings[questionId] || ''
         })),
         timeSpent: (selectedQuiz.duration * 60) - timeLeft,
-        confidenceLevel: 3
+        confidenceLevel: 3,
+        previousConcept
       };
       const res = await api.post(`/quiz/${selectedQuiz.id}/attempt`, payload);
       if (res?.data?.score != null) {

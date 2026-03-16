@@ -17,8 +17,11 @@ const INITIAL_CHEMICALS = [
   { id: 'h2o', name: 'Distilled Water', type: 'chemical', color: '#38bdf8', ph: 7, molarity: 55.5 },
   { id: 'hcl', name: 'HCl (Hydrochloric Acid)', type: 'chemical', color: '#e2e8f0', ph: 1, molarity: 0.1 },
   { id: 'naoh', name: 'NaOH (Sodium Hydroxide)', type: 'chemical', color: '#f1f5f9', ph: 14, molarity: 0.1 },
+  { id: 'h2so4', name: 'H2SO4 (Sulphuric Acid)', type: 'chemical', color: '#e2e8f0', ph: 0.5, molarity: 0.05 },
+  { id: 'na2co3', name: 'Na2CO3 (Sodium Carbonate)', type: 'chemical', color: '#f1f5f9', ph: 11.5, molarity: 0.1 },
   { id: 'kmno4', name: 'Potassium Permanganate', type: 'chemical', color: '#701a75', ph: 7, molarity: 0.02 },
   { id: 'phth', name: 'Phenolphthalein Indicator', type: 'chemical', color: 'transparent', ph: 7, isIndicator: true },
+  { id: 'mo', name: 'Methyl Orange Indicator', type: 'chemical', color: '#fb923c', ph: 7, isIndicator: true },
   { id: 'agno3', name: 'Silver Nitrate (AgNO₃)', type: 'chemical', color: '#f8fafc', ph: 6, molarity: 0.1 },
   { id: 'nacl', name: 'Sodium Chloride (NaCl)', type: 'chemical', color: '#f1f5f9', ph: 7, molarity: 0.1 }
 ];
@@ -117,14 +120,56 @@ const DraggableItem = ({ item, useDrag }) => {
   );
 };
 
-const SandboxBench = ({ useDrag, useDrop }) => {
+const SandboxBench = ({ useDrag, useDrop, role = 'student' }) => {
   const [activeItems, setActiveItems] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [sidebarTab, setSidebarTab] = useState('vessels');
-  const [currentExp, setCurrentExp] = useState(null);
+  const [currentExp, setCurrentExp] = useState(EXPERIMENTS[0]);
   const [currentPhaseIdx, setCurrentPhaseIdx] = useState(0);
   const [addingVolume, setAddingVolume] = useState(10);
+  const [calcInput, setCalcInput] = useState('');
+  const [calcResult, setCalcResult] = useState(null);
+  const [observationLog, setObservationLog] = useState([]);
   const canvasRef = useRef(null);
+
+  const isTeacher = role === 'teacher' || role === 'admin';
+
+  const checkCalculation = () => {
+    const phase = currentExp?.phases[currentPhaseIdx];
+    if (!phase?.isCalculation) return;
+    
+    const inputVal = parseFloat(calcInput);
+    const flask = activeItems.find(i => i.id === 'flask');
+    const naoh = flask?.contents?.find(c => c.id === 'naoh');
+    const vBase = naoh?.volume || 0;
+    const expected = (0.1 * vBase) / 20;
+
+    if (Math.abs(inputVal - expected) < 0.01) {
+      setCalcResult({ success: true, val: expected.toFixed(4) });
+      setCurrentPhaseIdx(prev => prev + 1);
+    } else {
+      setCalcResult({ success: false, expected: expected.toFixed(4) });
+    }
+  };
+
+  const autoTitrate = () => {
+    if (!isTeacher || !currentExp) return;
+    const flask = activeItems.find(i => i.id === 'flask');
+    const burette = activeItems.find(i => i.id === 'burette');
+    if (!flask || !burette) return;
+
+    // Simulate perfect titration
+    const endpointVol = 20; // 0.1M base to 0.1M acid
+    updateItem(flask.instanceId, {
+      contents: [
+        ...(flask.contents || []),
+        { id: 'naoh', name: 'NaOH', volume: endpointVol, color: '#f1f5f9', ph: 14, molarity: 0.1 }
+      ]
+    });
+    updateItem(burette.instanceId, {
+      contents: burette.contents.map(c => ({ ...c, volume: Math.max(0, c.volume - endpointVol) }))
+    });
+  };
 
   const [{ isOverCanvas }, dropCanvas] = useDrop(() => ({
     accept: [ItemTypes.VESSEL, ItemTypes.TOOL],
@@ -225,16 +270,40 @@ const SandboxBench = ({ useDrag, useDrop }) => {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (currentExp) {
-      const phase = currentExp.phases[currentPhaseIdx];
-      if (phase.validation(activeItems)) {
-        if (currentPhaseIdx < currentExp.phases.length - 1) {
-          setCurrentPhaseIdx(prev => prev + 1);
-        }
-      }
+  const checkPhase = (items) => {
+    if (!currentExp) return;
+    const phase = currentExp.phases[currentPhaseIdx];
+    if (!phase) return;
+
+    if (phase.isCalculation) return; // Wait for manual check
+
+    if (phase.validation(items)) {
+      setCalcResult(null); // Clear old results
+      setCalcInput('');
+      setCurrentPhaseIdx(prev => Math.min(currentExp.phases.length - 1, prev + 1));
     }
+  };
+
+  useEffect(() => {
+    checkPhase(activeItems);
   }, [activeItems, currentExp, currentPhaseIdx]);
+
+  const addObservation = () => {
+    if (!selectedItem) return;
+    const ph = selectedItem.contents?.length > 0 ? (selectedItem.contents.reduce((acc, c) => acc + c.ph * c.volume, 0) / selectedItem.contents.reduce((acc, c) => acc + c.volume, 0)) : 7.0;
+    const totalVol = selectedItem.contents?.reduce((acc, c) => acc + c.volume, 0) || 0;
+    
+    setObservationLog(prev => [
+      ...prev, 
+      { 
+        id: Date.now(), 
+        name: selectedItem.name, 
+        ph: ph.toFixed(2), 
+        volume: totalVol.toFixed(1),
+        time: new Date().toLocaleTimeString()
+      }
+    ]);
+  };
 
   const selectedItem = activeItems.find(i => i.instanceId === selectedId);
 
@@ -261,13 +330,16 @@ const SandboxBench = ({ useDrag, useDrop }) => {
       const totalVol = vessel.contents.reduce((acc, c) => acc + c.volume, 0);
       const avgPH = vessel.contents.reduce((acc, c) => acc + c.ph * c.volume, 0) / totalVol;
       const hasPhth = vessel.contents.some(c => c.id === 'phth');
+      const hasMO = vessel.contents.some(c => c.id === 'mo');
       const hasAgNO3 = vessel.contents.some(c => c.id === 'agno3');
       const hasNaCl = vessel.contents.some(c => c.id === 'nacl');
       
       let color = vessel.contents[vessel.contents.length - 1].color;
       if (hasPhth && avgPH > 8.2) color = '#ff69b4';
-      if (hasPhth && avgPH <= 8.2) color = 'rgba(255, 255, 255, 0.3)'; // Slightly cloudy but clear
-      if (hasAgNO3 && hasNaCl) color = 'rgba(255, 255, 255, 0.9)'; // White milky precipitate
+      if (hasPhth && avgPH <= 8.2) color = 'rgba(255, 255, 255, 0.3)'; 
+      if (hasMO && avgPH > 4.4) color = '#fbbf24'; // Yellow
+      if (hasMO && avgPH <= 4.4) color = '#ef4444'; // Orange-red
+      if (hasAgNO3 && hasNaCl) color = 'rgba(255, 255, 255, 0.9)'; 
       
       return { color, ph: avgPH, totalVol, precipitate: hasAgNO3 && hasNaCl, avgPH };
     }, [vessel.contents]);
@@ -383,15 +455,43 @@ const SandboxBench = ({ useDrag, useDrop }) => {
     );
   };
 
+  const resetLab = () => {
+    setActiveItems([]);
+    setSelectedId(null);
+    setCurrentPhaseIdx(0);
+    setCalcInput('');
+    setCalcResult(null);
+    setObservationLog([]);
+  };
+
   return (
     <div style={{ display: 'flex', height: '800px', background: '#0f172a', borderRadius: '16px', overflow: 'hidden', border: '1px solid #1e293b' }}>
+      {/* Role Indicator for Admin/Teacher/Student */}
+      <div style={{ position: 'absolute', top: '10px', right: '340px', background: isTeacher ? '#6366f1' : '#10b981', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 800, zIndex: 100, boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+        {role.toUpperCase()} MODE
+      </div>
+      
       {/* Teacher Inventory */}
       <div style={{ width: '260px', background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '16px', background: '#0f172a', borderBottom: '1px solid #334155' }}>
-          <h3 style={{ margin: '0 0 12px', color: '#6366f1', fontSize: '0.85rem', letterSpacing: '1px' }}>LAB PROTOCOL</h3>
-          <select onChange={(e) => { const exp = EXPERIMENTS.find(ex => ex.id === e.target.value); setCurrentExp(exp); setCurrentPhaseIdx(0); setActiveItems([]); }} style={{ width: '100%', padding: '10px', borderRadius: '6px', background: '#1e293b', color: '#f8fafc', border: '1px solid #475569', fontSize: '0.85rem' }}>
-            <option value="">Sandbox Mode</option>
-            {EXPERIMENTS.map(ex => <option key={ex.id} value={ex.id}>{ex.title}</option>)}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 style={{ margin: 0, color: '#6366f1', fontSize: '0.85rem', letterSpacing: '1px' }}>LAB PROTOCOL</h3>
+            <button onClick={resetLab} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '0.65rem', cursor: 'pointer', fontWeight: 700 }}>RESET</button>
+          </div>
+          <select 
+            value={currentExp?.id || ''} 
+            onChange={(e) => { 
+              const exp = EXPERIMENTS.find(ex => ex.id === e.target.value); 
+              setCurrentExp(exp || null); 
+              setCurrentPhaseIdx(0); 
+              setActiveItems([]); 
+              setCalcInput('');
+              setCalcResult(null);
+            }} 
+            style={{ width: '100%', padding: '10px', borderRadius: '6px', background: '#0f172a', color: '#f8fafc', border: '2px solid #6366f1', fontSize: '0.85rem', fontWeight: 600 }}
+          >
+            <option value="">🧪 Custom Sandbox Mode</option>
+            {EXPERIMENTS.map(ex => <option key={ex.id} value={ex.id}>📋 {ex.title}</option>)}
           </select>
         </div>
         
@@ -422,6 +522,25 @@ const SandboxBench = ({ useDrag, useDrop }) => {
           <div style={{ padding: '20px', background: '#1e293b', borderBottom: '1px solid #334155', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
             <div style={{ fontSize: '0.7rem', color: '#6366f1', fontWeight: 800, marginBottom: '4px' }}>PHASE {currentPhaseIdx + 1} OF {currentExp.phases.length}</div>
             <div style={{ color: '#f8fafc', fontSize: '1.1rem', fontWeight: 600 }}>{currentExp.phases[currentPhaseIdx].instructions}</div>
+            
+            {currentExp.phases[currentPhaseIdx].isCalculation && (
+              <div style={{ marginTop: '12px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <input 
+                  type="number" 
+                  placeholder="Enter Molarity (M)" 
+                  value={calcInput} 
+                  onChange={(e) => setCalcInput(e.target.value)}
+                  style={{ padding: '8px', borderRadius: '4px', border: '1px solid #475569', background: '#0f172a', color: '#fff' }}
+                />
+                <button onClick={checkCalculation} style={{ padding: '8px 16px', borderRadius: '4px', background: '#6366f1', color: '#fff', border: 'none', cursor: 'pointer' }}>Check Result</button>
+                {calcResult && (
+                  <span style={{ color: calcResult.success ? '#22c55e' : '#ef4444', fontSize: '0.85rem' }}>
+                    {calcResult.success ? '✓ Correct!' : `❌ Try again. Hint: M1V1 = M2V2`}
+                  </span>
+                )}
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '6px', marginTop: '12px' }}>
               {currentExp.phases.map((_, i) => (
                 <div key={i} style={{ flex: 1, height: '4px', borderRadius: '2px', background: i < currentPhaseIdx ? '#22c55e' : i === currentPhaseIdx ? '#6366f1' : '#334155' }} />
@@ -442,16 +561,24 @@ const SandboxBench = ({ useDrag, useDrop }) => {
 
       {/* Observation & Results */}
       <div style={{ width: '320px', background: '#1e293b', borderLeft: '1px solid #334155', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '20px', background: '#0f172a', borderBottom: '1px solid #334155' }}>
+        <div style={{ padding: '20px', background: '#0f172a', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h4 style={{ margin: 0, color: '#f8fafc', fontSize: '0.9rem', letterSpacing: '1px' }}>OBSERVATION LOG</h4>
+          {isTeacher && <button onClick={autoTitrate} style={{ fontSize: '0.65rem', background: '#6366f1', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}>AUTO-TITRATE</button>}
         </div>
         <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>
           {selectedItem ? (
             <div style={{ animation: 'fadeIn 0.3s' }}>
-              <div style={{ padding: '12px', background: '#0f172a', borderRadius: '8px', marginBottom: '20px' }}>
+              <div style={{ padding: '12px', background: '#0f172a', borderRadius: '8px', marginBottom: '10px' }}>
                 <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>SELECTED OBJECT</div>
                 <div style={{ color: '#f8fafc', fontWeight: 700, fontSize: '1.2rem' }}>{selectedItem.name}</div>
               </div>
+
+              <button 
+                onClick={addObservation} 
+                style={{ width: '100%', padding: '10px', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', marginBottom: '20px', fontSize: '0.8rem', fontWeight: 600 }}
+              >
+                RECORD OBSERVATION
+              </button>
 
               {selectedItem.type === ItemTypes.VESSEL && (
                 <>
@@ -482,6 +609,19 @@ const SandboxBench = ({ useDrag, useDrop }) => {
                   </div>
                 </>
               )}
+              <div style={{ color: '#94a3b8', fontSize: '0.7rem', marginBottom: '10px', marginTop: '20px' }}>LOGGED OBSERVATIONS</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {observationLog.length > 0 ? observationLog.map(log => (
+                  <div key={log.id} style={{ background: '#0f172a', padding: '10px', borderRadius: '6px', fontSize: '0.7rem', border: '1px solid #334155' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6366f1', fontWeight: 700, marginBottom: '4px' }}>
+                      <span>{log.name}</span>
+                      <span>{log.time}</span>
+                    </div>
+                    <div style={{ color: '#f8fafc' }}>Volume: <strong>{log.volume} mL</strong> | pH: <strong>{log.ph}</strong></div>
+                  </div>
+                )) : <div style={{ textAlign: 'center', padding: '10px', color: '#475569', fontSize: '0.7rem' }}>No data logged</div>}
+              </div>
+
               <button onClick={() => { setActiveItems(prev => prev.filter(v => v.instanceId !== selectedId)); setSelectedId(null); }} style={{ width: '100%', padding: '12px', background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', borderRadius: '8px', cursor: 'pointer', marginTop: '32px', fontSize: '0.8rem', fontWeight: 700 }}>DISPOSE EQUIPMENT</button>
             </div>
           ) : (
@@ -499,7 +639,7 @@ const SandboxBench = ({ useDrag, useDrop }) => {
   );
 };
 
-const ChemistrySandbox = () => {
+const ChemistrySandbox = ({ role }) => {
   const [dnd, setDnd] = useState({ loading: true });
   useEffect(() => {
     let mounted = true;
@@ -517,7 +657,7 @@ const ChemistrySandbox = () => {
 
   return (
     <dnd.DndProvider backend={dnd.HTML5Backend}>
-      <SandboxBench useDrag={dnd.useDrag} useDrop={dnd.useDrop} />
+      <SandboxBench useDrag={dnd.useDrag} useDrop={dnd.useDrop} role={role} />
     </dnd.DndProvider>
   );
 };

@@ -40,6 +40,17 @@
 .qs-pct { color: #6b7280; font-size: 12px; }
 
 .qs-empty { color: #6b7280; font-style: italic; padding: 12px; }
+
+.qs-table-wrapper { overflow-x: auto; }
+.qs-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.qs-table th { text-align: left; padding: 12px; border-bottom: 2px solid #f3f4f6; color: #4b5563; font-weight: 600; }
+.qs-table td { padding: 12px; border-bottom: 1px solid #f3f4f6; color: #1f2937; }
+.qs-table tr:last-child td { border-bottom: none; }
+.qs-table .qs-score-badge { padding: 2px 8px; border-radius: 999px; font-weight: 600; font-size: 12px; }
+.qs-score-high { background: #dcfce7; color: #166534; }
+.qs-score-mid { background: #fef9c3; color: #854d0e; }
+.qs-score-low { background: #fecaca; color: #991b1b; }
+
 .qs-loading { color: #111827; padding: 12px; }
 .qs-error { color: #b91c1c; padding: 12px; border: 1px solid #fecaca; background: #fff7f7; border-radius: 8px; margin-bottom: 12px; }
 
