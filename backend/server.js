@@ -2,6 +2,7 @@
 require("dotenv").config(); // Load environment variables first
 
 const express = require("express");
+const path = require("path");
 const mongoose = require("mongoose");
 let MongoMemoryServer; // lazy-loaded to avoid dependency when not needed
 const cors = require("cors");
@@ -89,10 +90,22 @@ app.use("/api/chat", chatRoutes); // ✅ Chat route mounted
 app.use("/api/exams", examRoutes);
 
 // ====================
+// 🌐 Serve Frontend (for Single Service Deployment)
+// ====================
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+// ====================
 // 🧠 Health Check Route
 // ====================
-app.get("/", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({ message: "✅ Backend is live and running with ML Integration!" });
+});
+
+// The catch-all handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
 });
 
 // ====================
