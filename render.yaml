@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: chem-concept-all-in-one
+    env: node
+    plan: free
+    buildCommand: "cd frontend && npm install && npm run build && cd ../backend && npm install"
+    startCommand: "node backend/server.js"
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false # Set this value manually in Render Dashboard
+      - key: JWT_SECRET
+        sync: false # Set this value manually in Render Dashboard
+      - key: GEMINI_API_KEY
+        sync: false # Set this value manually in Render Dashboard
+      - key: USE_IN_MEMORY_DB
+        value: "false"
+      - key: EMAIL_USER
+        value: bansumaria@gmail.com
+      - key: EMAIL_PASS
+        sync: false # Set this value manually in Render Dashboard
+      - key: REACT_APP_API_BASE_URL
+        value: /api
+      - key: RAZORPAY_KEY_ID
+        value: rzp_test_S1Fsdwu5K3M4lx
+      - key: RAZORPAY_KEY_SECRET
+        sync: false # Set this value manually in Render Dashboard
+      - key: GOOGLE_CLIENT_ID
+        sync: false # Set this value manually in Render Dashboard
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false # Set this value manually in Render Dashboard
+      - key: GOOGLE_REFRESH_TOKEN
+        sync: false # Set this value manually in Render Dashboard
