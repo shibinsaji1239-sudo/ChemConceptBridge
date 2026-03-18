@@ -7,7 +7,12 @@ const User = require("../models/User");
 const router = express.Router();
 
 // ✅ Use environment variable for Google Client ID
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const client = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+
+if (!client) {
+  console.warn("⚠️ GOOGLE_CLIENT_ID missing in .env. Google Login will not be functional.");
+}
 
 // =========================
 // 🌐 POST /api/auth/google-login

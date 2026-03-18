@@ -6,10 +6,20 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+let razorpay;
+try {
+  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+    console.log("✅ Razorpay initialized successfully");
+  } else {
+    console.warn("⚠️ Razorpay keys missing in .env. Payment features will be simulated.");
+  }
+} catch (err) {
+  console.error("❌ Razorpay initialization error:", err.message);
+}
 
 // Map plan IDs to prices in INR (amount in paise, so multiply by 100)
 const PLAN_PRICES = {
